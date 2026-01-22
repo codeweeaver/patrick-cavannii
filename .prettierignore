@@ -1,0 +1,14 @@
+node_modules
+dist
+build
+public
+package-lock.json
+.idea
+archive.txt
+
+# Assets
+src/assets
+*.png
+*.svg
+*.jpg
+*.jpeg

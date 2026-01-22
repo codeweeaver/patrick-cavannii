@@ -1,0 +1,122 @@
+[
+    {
+        "name": "Josephine Huff",
+        "email": "josephine@mailinator.com",
+        "phone": "+2348339928293",
+        "password": "Pa$$w0rd!",
+        "comfirmPassword": "Pa$$w0rd!",
+        "terms": true,
+        "addressess": [
+            {
+                "id": "addrs_1",
+                "label": "Home",
+                "isDefault": true,
+                "country": "Nigeria",
+                "state": "Adamawa",
+                "city": "Yola",
+                "zipCode": "10011",
+                "street": "Accusamus fugiat lab"
+            }
+        ],
+        "role": "user",
+        "cart": [],
+        "wishlist": [],
+        "createdAt": "2026-01-20T14:08:42.663Z",
+        "id": 2
+    },
+    {
+        "name": "SULAIMAN ADAMU",
+        "email": "sulemanadams8888@gmail.com",
+        "phone": "+2347019427556",
+        "password": "Pa$$w0rd!",
+        "comfirmPassword": "Pa$$w0rd!",
+        "terms": true,
+        "addressess": [
+            {
+                "id": "a1352e76-e56e-42e5-8f1b-0f2af8f19214",
+                "label": "Work",
+                "isDefault": true,
+                "country": "Nigeria",
+                "state": "Abuja Federal Capital Territory",
+                "city": "Abuja",
+                "zipCode": "10011",
+                "street": "apt 30, wuse 2"
+            },
+            {
+                "id": "6d9297f7-3441-4496-9fa8-b99a203d9776",
+                "label": "Office",
+                "isDefault": false,
+                "country": "Nigeria",
+                "state": "Akwa Ibom",
+                "city": "Ikot Ekpene",
+                "zipCode": "10011",
+                "street": "Est consequuntur dol"
+            },
+            {
+                "id": "addrs_1",
+                "label": "Home",
+                "isDefault": false,
+                "country": "Nigeria",
+                "state": "Enugu",
+                "city": "Awgu",
+                "zipCode": "10011",
+                "street": "Layin Shahada, Ring Road"
+            }
+        ],
+        "role": "user",
+        "cart": [],
+        "wishlist": [],
+        "createdAt": "2026-01-20T14:20:28.208Z",
+        "id": 3
+    },
+    {
+        "name": "Beverly Clements",
+        "email": "jedyny@mailinator.com",
+        "phone": "+13522768502",
+        "password": "Pa$$w0rd!",
+        "comfirmPassword": "Pa$$w0rd!",
+        "terms": true,
+        "addressess": [
+            {
+                "id": "2e08d3ce-7c0a-4647-a978-6325c18bd01b",
+                "label": "Home",
+                "isDefault": true,
+                "country": "United States",
+                "state": "Alaska",
+                "city": "Akutan",
+                "zipCode": "36779",
+                "street": "Nulla magni rem fugi"
+            }
+        ],
+        "role": "user",
+        "cart": [],
+        "wishlist": [],
+        "createdAt": "2026-01-22T07:46:09.952Z",
+        "id": 4
+    },
+    {
+        "name": "Melodie Berger",
+        "email": "wesym@mailinator.com",
+        "phone": "+2347019427556",
+        "password": "Pa$$w0rd!",
+        "comfirmPassword": "Pa$$w0rd!",
+        "terms": true,
+        "addressess": [
+            {
+                "id": "0145b985-7313-4be8-993a-bd8a4ecaf134",
+                "label": "Home",
+                "isDefault": true,
+                "country": "Nigeria",
+                "state": "Abia",
+                "city": "Ohafia-Ifigh",
+                "zipCode": "10011",
+                "street": "Ohafia High School"
+            }
+        ],
+        "role": "user",
+        "cart": [],
+        "wishlist": [],
+        "createdAt": "2026-01-22T07:49:49.595Z",
+        "id": 5
+    }
+]

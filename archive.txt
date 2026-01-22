@@ -1,0 +1,409 @@
+import { motion } from "framer-motion";
+
+import { useRef } from "react";
+
+import { FiLock, FiMail, FiMapPin, FiPhone, FiUser } from "react-icons/fi";
+
+import { Form, Link, useActionData, useNavigation } from "react-router-dom";
+
+import { Input } from "../components/global/Input";
+
+
+
+// src/actions/register.js
+
+import { toast } from "react-hot-toast";
+
+import { redirect } from "react-router-dom";
+
+import registerSchema from "../schema/registerSchema";
+
+
+
+export const registerAction = async ({ request }) => {
+
+  const formData = await request.formData();
+
+  const data = Object.fromEntries(formData);
+
+
+
+  try {
+
+    // Convert string values to appropriate types
+
+    const formData = {
+
+      ...data,
+
+      cart: data.cart ? JSON.parse(data.cart) : [],
+
+      wishlist: data.wishlist ? JSON.parse(data.wishlist) : [],
+
+    };
+
+
+
+    // Validate the form data
+
+    await registerSchema.validate(formData, { abortEarly: false });
+
+
+
+    // Here you would typically make an API call to register the user
+
+    console.log("Validated form data:", formData);
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+
+
+    // Show success message
+
+    toast.success("Registration successful! Redirecting to login...");
+
+    return redirect("/login");
+
+  } catch (error) {
+
+    console.error("Validation error:", error);
+
+
+
+    // Handle validation errors
+
+    if (error.inner) {
+
+      const errors = error.inner.reduce((acc, err) => {
+
+        // Convert array indices to dot notation for nested fields
+
+        const path = err.path.replace(/\[(\d+)\]/g, ".$1");
+
+        return {
+
+          ...acc,
+
+          [path]: err.message,
+
+        };
+
+      }, {});
+
+      return { errors };
+
+    }
+
+
+
+    // Handle other errors
+
+    toast.error(error.message || "Registration failed. Please try again.");
+
+    return { error: error.message };
+
+  }
+
+};
+
+const Register = () => {
+
+  const actionData = useActionData();
+
+  const navigation = useNavigation();
+
+  const isSubmitting = navigation.state === "submitting";
+
+  const formRef = useRef(null);
+
+
+
+  // Get errors from action data
+
+  const errors = actionData?.errors || {};
+
+
+
+  // Animation variants
+
+  const containerVariants = {
+
+    hidden: { opacity: 0 },
+
+    visible: {
+
+      opacity: 1,
+
+      transition: {
+
+        when: "beforeChildren",
+
+        staggerChildren: 0.1,
+
+      },
+
+    },
+
+  };
+
+
+
+  const itemVariants = {
+
+    hidden: { y: 20, opacity: 0 },
+
+    visible: {
+
+      y: 0,
+
+      opacity: 1,
+
+    },
+
+  };
+
+
+
+  return (
+
+    <motion.div
+
+      className="max-w-md mx-auto p-8"
+
+      initial="hidden"
+
+      animate="visible"
+
+      variants={containerVariants}
+
+    >
+
+      <motion.div className="text-center mb-8" variants={itemVariants}>
+
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">
+
+          Create an account
+
+        </h2>
+
+        <p className="text-gray-600">
+
+          Already have an account?{" "}
+
+          <Link to="/login" className="text-primary hover:underline">
+
+            Sign in
+
+          </Link>
+
+        </p>
+
+      </motion.div>
+
+
+
+      <Form method="post" className="space-y-4" replace ref={formRef}>
+
+        <motion.div variants={itemVariants}>
+
+          <Input
+
+            name="name"
+
+            label="Full Name"
+
+            type="text"
+
+            id="name"
+
+            placeholder="Your full name"
+
+            icon={<FiUser />}
+
+            error={errors.name}
+
+          />
+
+        </motion.div>
+
+
+
+        <motion.div variants={itemVariants}>
+
+          <Input
+
+            name="email"
+
+            label="Email"
+
+            type="email"
+
+            id="email"
+
+            placeholder="your.email@example.com"
+
+            icon={<FiMail />}
+
+            error={errors.email}
+
+          />
+
+        </motion.div>
+
+
+
+        <motion.div variants={itemVariants}>
+
+          <Input
+
+            name="password"
+
+            label="Password"
+
+            type="password"
+
+            id="password"
+
+            placeholder="Create a password"
+
+            icon={<FiLock />}
+
+            error={errors.password}
+
+          />
+
+        </motion.div>
+
+
+
+        <motion.div variants={itemVariants}>
+
+          <Input
+
+            name="comfirmPassword"
+
+            label="Confirm Password"
+
+            type="password"
+
+            id="comfirmPassword"
+
+            placeholder="Confirm your password"
+
+            icon={<FiLock />}
+
+            error={errors.comfirmPassword}
+
+          />
+
+        </motion.div>
+
+
+
+        <motion.div variants={itemVariants}>
+
+          <Input
+
+            name="phone"
+
+            label="Phone Number"
+
+            type="tel"
+
+            id="phone"
+
+            placeholder="+1234567890"
+
+            icon={<FiPhone />}
+
+            error={errors.phone}
+
+          />
+
+        </motion.div>
+
+
+
+        <motion.div variants={itemVariants}>
+
+          <Input
+
+            name="address"
+
+            label="Address"
+
+            type="textarea"
+
+            id="address"
+
+            placeholder="Your full address"
+
+            icon={<FiMapPin />}
+
+            multiline
+
+            rows={4}
+
+            error={errors.address}
+
+          />
+
+        </motion.div>
+
+
+
+        <input type="hidden" name="role" value="user" />
+
+        <input type="hidden" name="cart" value="[]" />
+
+        <input type="hidden" name="wishlist" value="[]" />
+
+
+
+        {actionData?.error && (
+
+          <motion.div
+
+            variants={itemVariants}
+
+            className="p-3 text-red-700 bg-red-100 rounded-md"
+
+          >
+
+            {actionData.error}
+
+          </motion.div>
+
+        )}
+
+
+
+        <motion.div variants={itemVariants} className="pt-4">
+
+          <button
+
+            type="submit"
+
+            disabled={isSubmitting}
+
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary disabled:opacity-50"
+
+          >
+
+            {isSubmitting ? "Creating account..." : "Create Account"}
+
+          </button>
+
+        </motion.div>
+
+      </Form>
+
+    </motion.div>
+
+  );
+
+};
+
+
+
+export default Register;

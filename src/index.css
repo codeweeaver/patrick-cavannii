@@ -1,0 +1,97 @@
+/* import fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Permanent+Marker&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* import TailwindCss */
+@import 'tailwindcss';
+
+/* swiper related imports    */
+@import 'swiper/css';
+@import 'swiper/css/navigation';
+@import 'swiper/css/pagination';
+@import 'swiper/css/scrollbar';
+
+/* Custom container class */
+.container {
+  width: 90%;
+  max-width: theme(--breakpoint-xl);
+  margin: 0 auto;
+}
+
+/* Responsive container using Tailwind v4 theme function */
+@media (width >= theme(--breakpoint-sm)) {
+  .container {
+    max-width: theme(--breakpoint-sm);
+  }
+}
+
+@media (width >= theme(--breakpoint-md)) {
+  .container {
+    max-width: theme(--breakpoint-md);
+  }
+}
+
+@media (width >= theme(--breakpoint-lg)) {
+  .container {
+    max-width: theme(--breakpoint-lg);
+  }
+}
+
+@media (width >= theme(--breakpoint-xl)) {
+  .container {
+    max-width: theme(--breakpoint-xl);
+  }
+}
+
+/* Hide scrollbar for all browsers */
+.scrollbar-hide {
+  -ms-overflow-style: none !important; /* IE and Edge */
+  scrollbar-width: none !important; /* Firefox */
+}
+
+/* Hide scrollbar for Webkit browsers (Chrome, Safari, etc.) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  -webkit-appearance: none !important;
+}
+
+@media (min-width: 1536px) {
+  .container {
+    max-width: 1536px;
+  }
+}
+
+@theme {
+  /* fonts */
+  --font-secondary: 'Roboto', sans-serif;
+  --font-primary: 'Montserrat', sans-serif;
+  --font-accent: 'Permanent Marker', cursive;
+
+  /* colors */
+  --color-primary: #c99947;
+  --color-secondary: #2563eb;
+  --color-accent: #f14949;
+  --color-text: #222222;
+}
+
+@layer base {
+  body {
+    font-family: var(--font-primary), serif;
+    box-sizing: border-box;
+  }
+
+  .form-input {
+    @apply w-full appearance-none rounded-md border bg-white px-4 py-2 transition-colors focus:ring-2 focus:ring-offset-1 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100;
+  }
+
+  .form-input-normal {
+    @apply focus:border-primary focus:ring-primary border-gray-300;
+  }
+
+  .form-input-error {
+    @apply border-red-500 focus:ring-red-500;
+  }
+}

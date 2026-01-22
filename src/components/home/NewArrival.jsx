@@ -11,9 +11,7 @@ const NewArrival = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const data = await apiClient.get(
-          '/products?categories_like=New%20Arrival&_limit=4&_sort=id&_order=desc',
-        );
+        const data = await apiClient.get('/products?_sort=id&_order=desc&_limit=4');
         setProducts(data);
       } catch (error) {
         console.error('Failed to fetch new arrivals:', error);

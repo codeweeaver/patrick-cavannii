@@ -22,6 +22,7 @@ import HelpShipping from '../../pages/help/HelpShipping';
 // src/router/routes/userRoutes.jsx
 import CheckoutLayout from '../../layouts/CheckoutLayout';
 import UserProfileLayout from '../../layouts/UserProfileLayout';
+import Collections from '../../pages/Collections';
 import CreateAddress from '../../pages/profile/CreateAddress';
 import AuthGuard from '../guards/AuthGuard';
 
@@ -106,6 +107,19 @@ export const publicRoutes = [
         element: <AuthGuard allowedRoles={['user']} />,
         children: [
           {
+            path: '/collections',
+            element: (
+              <Suspended>
+                <Collections />
+              </Suspended>
+            ),
+          },
+          {
+            path: '/collections/:productId',
+            element: <Suspended></Suspended>,
+          },
+          // CARTS
+          {
             path: '/cart',
             element: (
               <Suspended>
@@ -147,6 +161,7 @@ export const publicRoutes = [
               },
             ],
           },
+          //   PROFILES
           {
             path: '/profile',
             element: <UserProfileLayout />,

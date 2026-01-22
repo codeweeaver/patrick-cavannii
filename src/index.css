@@ -58,6 +58,15 @@
   -webkit-appearance: none !important;
 }
 
+/* Custom Bullet Styles */
+.custom-bullet {
+  @apply mx-2 inline-block h-3 w-3 cursor-pointer rounded-full bg-white/50 transition-all duration-300;
+}
+
+.swiper-pagination-bullet-active.custom-bullet {
+  @apply w-8 bg-white; /* Makes the active dot longer/pill-shaped */
+}
+
 @media (min-width: 1536px) {
   .container {
     max-width: 1536px;

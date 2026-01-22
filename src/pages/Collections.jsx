@@ -1,6 +1,6 @@
 import { AnimatedPage } from '../components/global/AnimatedPage';
 
-const Collection = () => {
+const Collections = () => {
   return (
     <AnimatedPage>
       <section className="store-page">
@@ -14,7 +14,7 @@ const Collection = () => {
           services to ensure your orders reach you promptly.
         </p>
         <p>
-          Explore our latest collections and take advantage of exclusive deals and discounts
+          Explore our latest collectionss and take advantage of exclusive deals and discounts
           available only in our Store.
         </p>
       </section>
@@ -22,4 +22,4 @@ const Collection = () => {
   );
 };
 
-export default Collection;
+export default Collections;

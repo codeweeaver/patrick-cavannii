@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { apiClient } from '../../utils/apiClient.js';
 import LoadingSpinner from '../global/LoadingSpinner.jsx';
-import ProductCard from '../global/ProductCard.jsx';
+import ProductCard from '../products/ProductCard.jsx';
 
 const NewArrival = () => {
   const [products, setProducts] = useState([]);

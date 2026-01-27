@@ -14,16 +14,21 @@ const cartReducer = (state, action) => {
   switch (action.type) {
     case 'ADD_ITEM': {
       const newItem = action.payload;
-      const existingItem = state.items.find((item) => item.id === newItem.id);
+      // FIX: Use sku, falling back to id to ensure we always have a unique key
+      const identifier = newItem.sku || newItem.id;
+      const existingItemIndex = state.items.findIndex(
+        (item) => (item.sku || item.id) === identifier,
+      );
+
       const quantityToAdd = newItem.quantity || 1;
 
-      if (existingItem) {
-        return {
-          ...state,
-          items: state.items.map((item) =>
-            item.id === newItem.id ? { ...item, quantity: item.quantity + quantityToAdd } : item,
-          ),
+      if (existingItemIndex > -1) {
+        const updatedItems = [...state.items];
+        updatedItems[existingItemIndex] = {
+          ...updatedItems[existingItemIndex],
+          quantity: updatedItems[existingItemIndex].quantity + quantityToAdd,
         };
+        return { ...state, items: updatedItems };
       }
 
       return {
@@ -31,28 +36,32 @@ const cartReducer = (state, action) => {
         items: [...state.items, { ...newItem, quantity: quantityToAdd }],
       };
     }
+
     case 'REMOVE_ITEM':
       return {
         ...state,
-        items: state.items.filter((item) => item.id !== action.payload),
+        // FIX: Check both sku and id to ensure the filter actually removes the item
+        items: state.items.filter(
+          (item) => item.sku !== action.payload && item.id !== action.payload,
+        ),
       };
+
     case 'UPDATE_QUANTITY':
       return {
         ...state,
         items: state.items.map((item) =>
-          item.id === action.payload.id ? { ...item, quantity: action.payload.quantity } : item,
+          item.sku === action.payload.sku || item.id === action.payload.sku
+            ? { ...item, quantity: action.payload.quantity }
+            : item,
         ),
       };
+
     case 'CLEAR_CART':
-      return {
-        ...state,
-        items: [],
-      };
+      return { ...state, items: [] };
+
     case 'SET_CART':
-      return {
-        ...state,
-        items: action.payload,
-      };
+      return { ...state, items: action.payload };
+
     default:
       return state;
   }
@@ -61,7 +70,7 @@ const cartReducer = (state, action) => {
 export const CartProvider = ({ children }) => {
   const [state, dispatch] = useReducer(cartReducer, null, getInitialCart);
 
-  // Sync cart with the user object in localStorage
+  // Sync with LocalStorage and API
   useEffect(() => {
     let user = JSON.parse(localStorage.getItem('user'));
     let storage = localStorage;
@@ -72,78 +81,67 @@ export const CartProvider = ({ children }) => {
     }
 
     if (user) {
-      // 1. Update the current session user object
       const updatedUser = { ...user, cart: state.items };
       storage.setItem('user', JSON.stringify(updatedUser));
 
-      // 3. Persist to Backend (Fix for data loss on logout/login)
       if (user.id) {
-        fetch(`import.meta.env.VITE_API_URL/users/${user.id}`, {
+        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        fetch(`${baseUrl}/users/${user.id}`, {
           method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ cart: state.items }),
-        }).catch((err) => console.error('Failed to sync cart to server:', err));
+        }).catch((err) => console.error('Failed to sync cart:', err));
       }
     }
   }, [state.items]);
 
-  // Listen for login/logout to reset cart state
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user'));
-      dispatch({ type: 'SET_CART', payload: user?.cart || [] });
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
   const addToCart = (item) => {
-    // Safety check: Ensure item is a valid product with an ID, not a click event
-    if (!item?.id || item?.nativeEvent) {
-      console.error(
-        'Invalid item passed to addToCart. Ensure you are using () => addToCart(product)',
-      );
+    // FIX: More flexible validation (allow id if sku is missing)
+    if (!item?.id) return;
+
+    const itemSku = item.sku || item.id;
+    const variant = item.inventory?.variants?.find((v) => v.sku === itemSku);
+
+    const maxQty = variant
+      ? (variant.stock ?? variant.quantity)
+      : (item.inventory?.totalStock ?? item.inventory?.quantity ?? 99);
+
+    const existingInCart = state.items.find((i) => (i.sku || i.id) === itemSku);
+    const currentQtyInCart = existingInCart ? existingInCart.quantity : 0;
+    const requestedTotal = currentQtyInCart + (item.quantity || 1);
+
+    if (requestedTotal > maxQty) {
+      toast.error(`Stock limit reached. Only ${maxQty} available.`);
       return;
     }
 
-    // Inventory Check
-    const existingItem = state.items.find((i) => i.id === item.id);
-    const currentQty = existingItem ? existingItem.quantity : 0;
-    const quantityToAdd = item.quantity || 1;
-    const maxQty = item.inventory?.quantity || 0;
-
-    if (currentQty + quantityToAdd > maxQty) {
-      toast.error(`Sorry, only ${maxQty} items available in stock.`);
-      return;
-    }
-
-    dispatch({ type: 'ADD_ITEM', payload: item });
-    toast.success('Added to cart');
+    dispatch({ type: 'ADD_ITEM', payload: { ...item, sku: itemSku } });
+    toast.success(`${item.name} added to cart`);
   };
 
-  const removeFromCart = (itemId) => {
-    dispatch({ type: 'REMOVE_ITEM', payload: itemId });
-    toast.success('Removed from cart');
+  const removeFromCart = (idOrSku) => {
+    dispatch({ type: 'REMOVE_ITEM', payload: idOrSku });
+    toast.success('Item removed');
   };
 
-  const updateQuantity = (itemId, quantity) => {
+  const updateQuantity = (idOrSku, quantity) => {
     if (quantity < 1) return;
-    const item = state.items.find((i) => i.id === itemId);
-    if (item && item.inventory?.quantity && quantity > item.inventory.quantity) {
-      toast.error(`Sorry, only ${item.inventory.quantity} items available.`);
+    const item = state.items.find((i) => i.sku === idOrSku || i.id === idOrSku);
+    if (!item) return;
+
+    const variant = item.inventory?.variants?.find((v) => v.sku === idOrSku);
+    const maxQty = variant ? (variant.stock ?? variant.quantity) : (item.inventory?.quantity ?? 99);
+
+    if (quantity > maxQty) {
+      toast.error(`Only ${maxQty} items in stock.`);
       return;
     }
-    dispatch({ type: 'UPDATE_QUANTITY', payload: { id: itemId, quantity } });
+
+    dispatch({ type: 'UPDATE_QUANTITY', payload: { sku: idOrSku, quantity } });
   };
 
-  const clearCart = () => {
-    dispatch({ type: 'CLEAR_CART' });
-  };
+  const clearCart = () => dispatch({ type: 'CLEAR_CART' });
 
-  // Derived state
   const cartCount = state.items.reduce((total, item) => total + item.quantity, 0);
   const cartTotal = state.items.reduce((total, item) => total + item.price * item.quantity, 0);
 

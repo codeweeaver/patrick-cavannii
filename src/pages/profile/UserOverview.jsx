@@ -83,7 +83,7 @@ const UserOverview = () => {
           {stats.map((stat, index) => (
             <Link
               key={index}
-              to={stat.link}
+              to={stat.link === 'cart' ? '/cart' : stat.link}
               className="group flex items-center gap-4 rounded-xl border border-gray-100 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
             >
               <div

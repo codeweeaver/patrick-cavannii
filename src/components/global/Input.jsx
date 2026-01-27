@@ -12,8 +12,8 @@ const inputVariants = {
   initial: { scale: 1, borderColor: '#D1D5DB' }, // gray-300
   focus: {
     scale: 1.0,
-    borderColor: '#4F46E5', // primary color (indigo-600)
-    boxShadow: '0 0 0 2px rgba(79, 70, 239, 0.2)', // focus ring
+    borderColor: '#c99947', // primary color
+    boxShadow: '0 0 0 2px rgba(201, 153, 71, 0.2)', // focus ring
     transition: { duration: 0.2, ease: 'circOut' },
   },
   error: {
@@ -130,7 +130,7 @@ export const Input = ({
                   control: (state) =>
                     `!min-h-[38px] !px-3 !border !rounded-md !shadow-sm !transition-all !duration-200 ${
                       state.isFocused
-                        ? '!border-indigo-600 !ring-2 !ring-indigo-600/20'
+                        ? '!border-primary !ring-2 !ring-primary/20'
                         : '!border-gray-300'
                     } ${error ? '!border-red-500' : ''}`,
                   menu: () =>
@@ -138,7 +138,7 @@ export const Input = ({
                   option: (state) =>
                     `!px-3 !py-2 !text-sm !cursor-pointer ${
                       state.isFocused
-                        ? '!bg-indigo-50 !text-indigo-900'
+                        ? '!bg-primary/10 !text-primary'
                         : '!bg-transparent !text-gray-700'
                     }`,
                   noOptionsMessage: () => '!p-4 !text-sm !text-gray-500',
@@ -157,7 +157,7 @@ export const Input = ({
                 variants={inputVariants}
                 initial="initial"
                 animate={isInvalid ? 'error' : 'initial'}
-                className={`flex items-center rounded-md border shadow-sm transition-all duration-200 focus-within:border-indigo-600 focus-within:ring-2 focus-within:ring-indigo-600/20 ${
+                className={`focus-within:border-primary focus-within:ring-primary/20 flex items-center rounded-md border shadow-sm transition-all duration-200 focus-within:ring-2 ${
                   isInvalid ? 'border-red-500' : 'border-gray-300'
                 }`}
               >

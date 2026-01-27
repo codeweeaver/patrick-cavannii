@@ -12,6 +12,9 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@tailwindcss/vite": "^4.1.17",
+    "@tiptap/pm": "^3.17.1",
+    "@tiptap/react": "^3.17.1",
+    "@tiptap/starter-kit": "^3.17.1",
     "classnames": "^2.5.1",
     "country-state-city": "^3.2.1",
     "framer-motion": "^12.23.25",

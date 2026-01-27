@@ -43,9 +43,8 @@ const Navbar = () => {
 
   const pageNavLinks = [
     { name: 'HOME', path: '/' },
-    { name: 'STORE', path: '/products' },
     {
-      name: 'CAVANNI WARDROBE',
+      name: 'STORE',
       path: '/products',
       dropdown: {
         slides: [
@@ -75,17 +74,23 @@ const Navbar = () => {
           params: brand.name,
         })),
         collections: [
-            {
-                name: "Cavanni Wardrobe",
-                params: "/collections/cavanni-wardrobe",
-            },
-            {
-                name: "Exclusive Collection",
-                params: "/collections/exclusive-collections",
-            }
-        ]
+          {
+            name: 'Haute-Couture',
+            params: '/collections/haute-couture',
+          },
+          {
+            name: 'Cavanni Wardrobe',
+            params: '/collections/cavanni-wardrobe',
+          },
+          {
+            name: 'Exclusive Collection',
+            params: '/collections/exclusive',
+          },
+        ],
       },
     },
+    // { name: 'COLLECTIONS', path: '/collections' },
+
     { name: 'OUR BLOGS', path: '/blogs' },
     { name: 'ABOUT US', path: '/about' },
   ];
@@ -116,7 +121,7 @@ const Navbar = () => {
 
   return (
     <>
-      <nav className="sticky top-0 z-20 w-full bg-white shadow-sm">
+      <nav className="sticky top-0 z-50 w-full bg-white shadow-sm">
         {/* Headers Section */}
         <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between gap-4">

@@ -1,9 +1,14 @@
 import { FiChevronDown } from 'react-icons/fi';
-import { NavLink } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import 'swiper/css';
+import 'swiper/css/pagination';
 import { Autoplay, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
+import BaseNavLink from '../global/BaseNavLink';
 
 const NavbarLinks = ({ pageNavLinks }) => {
+  const navigate = useNavigate();
+
   return (
     <nav className="static hidden flex-1 items-center justify-center gap-5 lg:flex">
       {pageNavLinks.map((item) => {
@@ -13,6 +18,7 @@ const NavbarLinks = ({ pageNavLinks }) => {
             {isDropdown ? (
               <button
                 className={`hover:text-primary relative inline-flex cursor-pointer items-center px-1 text-xs leading-[62px] font-medium text-gray-700 transition-colors`}
+                onClick={() => navigate('/products')}
               >
                 <span className="whitespace-nowrap">
                   {item.name}
@@ -20,19 +26,16 @@ const NavbarLinks = ({ pageNavLinks }) => {
                 </span>
               </button>
             ) : (
-              <NavLink
+              <BaseNavLink
                 to={item.path}
                 end={item.path === '/'}
-                className={({ isActive }) =>
-                  `relative inline-flex items-center px-1 text-xs leading-[62px] font-medium transition-colors ${
-                    isActive
-                      ? 'text-primary border-primary border-b-2'
-                      : 'hover:text-primary text-gray-700'
-                  } `
-                }
+                className="relative inline-flex items-center px-1 text-xs leading-[62px] font-medium transition-colors"
+                activeClassName="text-primary border-primary border-b-2"
+                inactiveClassName="hover:text-primary text-gray-700"
+                activeBackgroundClassName="hidden"
               >
                 <span className="whitespace-nowrap">{item.name}</span>
-              </NavLink>
+              </BaseNavLink>
             )}
 
             {/* Dropdown Menu */}
@@ -89,14 +92,15 @@ const NavbarLinks = ({ pageNavLinks }) => {
                           </h3>
                           <div className="space-y-2">
                             {item.dropdown.men.map((subItem) => (
-                              <NavLink
+                              <BaseNavLink
                                 key={subItem.name}
                                 to={`${item.path}?gender=men&category=${subItem.params}`}
                                 className="hover:text-primary block py-1 text-sm text-gray-600 transition-colors"
+                                activeBackgroundClassName="hidden"
                                 onClick={(e) => e.currentTarget.blur()}
                               >
                                 {subItem.name}
-                              </NavLink>
+                              </BaseNavLink>
                             ))}
                           </div>
                         </div>
@@ -110,14 +114,15 @@ const NavbarLinks = ({ pageNavLinks }) => {
                           </h3>
                           <div className="space-y-2">
                             {item.dropdown.women.map((subItem) => (
-                              <NavLink
+                              <BaseNavLink
                                 key={subItem.name}
                                 to={`${item.path}?gender=women&category=${subItem.params}`}
                                 className="hover:text-primary block py-1 text-sm text-gray-600 transition-colors"
+                                activeBackgroundClassName="hidden"
                                 onClick={(e) => e.currentTarget.blur()}
                               >
                                 {subItem.name}
-                              </NavLink>
+                              </BaseNavLink>
                             ))}
                           </div>
                         </div>
@@ -131,14 +136,15 @@ const NavbarLinks = ({ pageNavLinks }) => {
                           </h3>
                           <div className="space-y-2">
                             {item.dropdown.brands.map((subItem) => (
-                              <NavLink
+                              <BaseNavLink
                                 key={subItem.name}
                                 to={`${item.path}?brand=${subItem.params}`}
                                 className="hover:text-primary block py-1 text-sm text-gray-600 capitalize transition-colors"
+                                activeBackgroundClassName="hidden"
                                 onClick={(e) => e.currentTarget.blur()}
                               >
                                 {subItem.name}
-                              </NavLink>
+                              </BaseNavLink>
                             ))}
                           </div>
                         </div>
@@ -152,14 +158,15 @@ const NavbarLinks = ({ pageNavLinks }) => {
                           </h3>
                           <div className="space-y-2">
                             {item.dropdown.collections.map((subItem) => (
-                              <NavLink
+                              <BaseNavLink
                                 key={subItem.name}
                                 to={`.${subItem.params}`}
                                 className="hover:text-primary block py-1 text-sm text-gray-600 capitalize transition-colors"
+                                activeBackgroundClassName="hidden"
                                 onClick={(e) => e.currentTarget.blur()}
                               >
                                 {subItem.name}
-                              </NavLink>
+                              </BaseNavLink>
                             ))}
                           </div>
                         </div>

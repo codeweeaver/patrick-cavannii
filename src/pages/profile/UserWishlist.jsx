@@ -1,7 +1,7 @@
 import { FiHeart, FiShoppingBag } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import AnimatedPage from '../../components/global/AnimatedPage';
-import ProductCard from '../../components/global/ProductCard';
+import ProductCard from '../../components/products/ProductCard';
 import { useWishlist } from '../../hooks/useWishlist';
 
 const UserWishlist = () => {

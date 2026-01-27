@@ -13,17 +13,15 @@ const Products = lazy(() => import('../../pages/products/Products'));
 const ProductDetail = lazy(() => import('../../pages/products/productDetail'));
 
 // Help Pages (Assuming these are not lazy based on original file, but you can make them lazy if needed)
-import HelpContact from '../../pages/help/HelpContact';
-import HelpOrder from '../../pages/help/HelpOrder';
-import HelpPayment from '../../pages/help/HelpPayment';
-import HelpReturn from '../../pages/help/HelpReturn';
-import HelpShipping from '../../pages/help/HelpShipping';
+const HelpContact = lazy(() => import('../../pages/help/HelpContact'));
+const HelpOrder = lazy(() => import('../../pages/help/HelpOrder'));
+const HelpPayment = lazy(() => import('../../pages/help/HelpPayment'));
+const HelpReturn = lazy(() => import('../../pages/help/HelpReturn'));
+const HelpShipping = lazy(() => import('../../pages/help/HelpShipping'));
 
 // src/router/routes/userRoutes.jsx
 import CheckoutLayout from '../../layouts/CheckoutLayout';
 import UserProfileLayout from '../../layouts/UserProfileLayout';
-import Collections from '../../pages/Collections';
-import CreateAddress from '../../pages/profile/CreateAddress';
 import AuthGuard from '../guards/AuthGuard';
 
 //User Profiles Pages
@@ -34,6 +32,11 @@ const UserReviews = lazy(() => import('../../pages/profile/UserReviews'));
 const UserOverview = lazy(() => import('../../pages/profile/UserOverview'));
 const AddressList = lazy(() => import('../../pages/profile/AddressList'));
 const EditAddress = lazy(() => import('../../pages/profile/EditAddress'));
+const CreateAddress = lazy(() => import('../../pages/profile/CreateAddress'));
+
+// Exclusive Products
+const ExclusiveProducts = lazy(() => import('../../pages/products/ExclusiveProducts'));
+const ExclusiveProductDetails = lazy(() => import('../../pages/products/ExclusiveProductDetails'));
 
 // Checkout Pages
 const Cart = lazy(() => import('../../pages/Cart'));
@@ -72,14 +75,6 @@ export const publicRoutes = [
         ),
       },
       {
-        path: 'collections',
-        element: <h2>Collections</h2>,
-        children: [
-          { index: true, element: <h2>Cavanni Wardrobe</h2> },
-          { path: 'haute-couture', element: <h2>Haute Couture</h2> },
-        ],
-      },
-      {
         path: 'blogs',
         element: (
           <Suspended>
@@ -104,31 +99,38 @@ export const publicRoutes = [
         ),
       },
       {
+        path: 'cart',
+        element: (
+          <Suspended>
+            <Cart />
+          </Suspended>
+        ),
+      },
+
+      // Protected Routes
+      {
         element: <AuthGuard allowedRoles={['user']} />,
         children: [
           {
-            path: '/collections',
+            path: 'exclusive',
             element: (
               <Suspended>
-                <Collections />
+                <ExclusiveProducts />
               </Suspended>
             ),
           },
           {
-            path: '/collections/:productId',
-            element: <Suspended></Suspended>,
-          },
-          // CARTS
-          {
-            path: '/cart',
+            path: 'exclusive/:id',
             element: (
               <Suspended>
-                <Cart />
+                <ExclusiveProductDetails />
               </Suspended>
             ),
           },
+
+          // Checkout Flow
           {
-            path: '/checkout',
+            path: 'checkout',
             element: (
               <Suspended>
                 <CheckoutLayout />
@@ -161,9 +163,10 @@ export const publicRoutes = [
               },
             ],
           },
-          //   PROFILES
+
+          // User Profile Flow
           {
-            path: '/profile',
+            path: 'profile',
             element: <UserProfileLayout />,
             children: [
               {
@@ -234,15 +237,60 @@ export const publicRoutes = [
           },
         ],
       },
+
+      // Help Center
       {
         path: 'help-center',
         element: <HelpLayout />,
         children: [
-          { index: true, element: <HelpPayment /> },
-          { path: 'order', element: <HelpOrder /> },
-          { path: 'return', element: <HelpReturn /> },
-          { path: 'shipping', element: <HelpShipping /> },
-          { path: 'contact', element: <HelpContact /> },
+          {
+            index: true,
+            element: (
+              <Suspended>
+                <HelpPayment />
+              </Suspended>
+            ),
+          },
+          {
+            path: 'order',
+            element: (
+              <Suspended>
+                <HelpOrder />
+              </Suspended>
+            ),
+          },
+          {
+            path: 'return',
+            element: (
+              <Suspended>
+                <HelpReturn />
+              </Suspended>
+            ),
+          },
+          {
+            path: 'shipping',
+            element: (
+              <Suspended>
+                <HelpShipping />
+              </Suspended>
+            ),
+          },
+          {
+            path: 'contact',
+            element: (
+              <Suspended>
+                <HelpContact />
+              </Suspended>
+            ),
+          },
+          {
+            path: 'payment',
+            element: (
+              <Suspended>
+                <HelpPayment />
+              </Suspended>
+            ),
+          },
         ],
       },
     ],

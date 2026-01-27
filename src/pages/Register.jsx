@@ -1,25 +1,27 @@
 // src/pages/Register.jsx
-import { AnimatePresence, motion } from 'framer-motion';
-import { FiCheck } from 'react-icons/fi';
-import { Link, Outlet, useLocation } from 'react-router-dom';
-
-const steps = [
-  { path: '/register', label: 'Personal' },
-  { path: '/register/security', label: 'Security' },
-  { path: '/register/address', label: 'Address' },
-];
+import { yupResolver } from '@hookform/resolvers/yup';
+import { motion } from 'framer-motion';
+import { FormProvider, useForm } from 'react-hook-form';
+import { FaGoogle } from 'react-icons/fa';
+import { FiUser } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { TextInput } from '../components/forms/TextInput';
+import { registerSchema } from '../schema';
 
 const Register = () => {
-  const location = useLocation();
+  const methods = useForm({
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      comfirmPassword: '',
+    },
+    resolver: yupResolver(registerSchema),
+  });
 
-  const getCurrentStepIndex = () => {
-    const currentPath = location.pathname;
-    if (currentPath.includes('address')) return 2;
-    if (currentPath.includes('security')) return 1;
-    return 0;
+  const onSubmit = async (data) => {
+    console.log(data);
   };
-
-  const currentStepIndex = getCurrentStepIndex();
 
   return (
     <div className="p-8">
@@ -42,65 +44,42 @@ const Register = () => {
           </p>
         </div>
 
-        {/* Step Indicator */}
-        <div className="relative mx-auto mb-12 max-w-[300px]">
-          {/* Progress Bar Background */}
-          <div className="absolute top-1/2 left-0 h-0.5 w-full -translate-y-1/2 bg-gray-200" />
+        <FormProvider {...methods}>
+          <form onSubmit={methods.handleSubmit(onSubmit)}>
+            <TextInput name="fullname" label="Full Name" type="text" icon={<FiUser />} />
 
-          {/* Active Progress Bar */}
-          <motion.div
-            className="bg-primary absolute top-1/2 left-0 h-0.5 origin-left -translate-y-1/2"
-            initial={{ width: '0%' }}
-            animate={{
-              width: `${(currentStepIndex / (steps.length - 1)) * 100}%`,
-            }}
-            transition={{ duration: 0.5, ease: 'easeInOut' }}
-          />
+            <div>
+              <button
+                type="submit"
+                className="bg-primary/90 hover:bg-primary focus:ring-primary flex w-full justify-center rounded-md border border-transparent px-6 py-3 text-sm font-medium text-white uppercase shadow-sm transition-all hover:scale-101 focus:ring-2 focus:ring-offset-2 focus:outline-none"
+              >
+                Register
+              </button>
+            </div>
 
-          <div className="flex items-center justify-between">
-            {steps.map((step, index) => {
-              const isCompleted = index < currentStepIndex;
-              const isActive = index === currentStepIndex;
+            <div className="relative mt-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="bg-white px-2 text-gray-500">OR</span>
+              </div>
+            </div>
 
-              return (
-                <div key={step.path} className="relative flex flex-col items-center gap-2">
-                  <motion.div
-                    className={`z-10 flex h-8 w-8 items-center justify-center rounded-full border-2 bg-white text-sm font-bold ${
-                      isActive ? 'shadow-[0_0_0_4px_rgba(201,153,71,0.2)]' : ''
-                    }`}
-                    animate={{
-                      scale: isActive ? 1.1 : 1,
-                      backgroundColor: isCompleted ? '#c99947' : '#ffffff',
-                      borderColor: isActive || isCompleted ? '#c99947' : '#e5e7eb',
-                      color: isCompleted ? '#ffffff' : isActive ? '#c99947' : '#9ca3af',
-                    }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    {isCompleted ? <FiCheck className="h-4 w-4" /> : <span>{index + 1}</span>}
-                  </motion.div>
-                  <motion.span
-                    className={`absolute -bottom-7 text-xs font-medium whitespace-nowrap ${
-                      isActive ? 'text-gray-900' : 'text-gray-400'
-                    }`}
-                    animate={{
-                      opacity: isActive || isCompleted ? 1 : 0.5,
-                      y: isActive ? 0 : 0,
-                    }}
-                  >
-                    {step.label}
-                  </motion.span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Content Area */}
-        <div className="mt-4">
-          <AnimatePresence mode="wait">
-            <Outlet key={location.pathname} />
-          </AnimatePresence>
-        </div>
+            {/* signup with social media */}
+            <div className="mt-6 flex items-center justify-center gap-5">
+              {/* Google */}
+              <Link
+                to="/auth/google"
+                className="flex w-full items-center justify-center gap-3 rounded-lg bg-[#DB4437] px-6 py-3 text-white transition-colors hover:bg-[#c53929]"
+                aria-label="Sign up with Google"
+              >
+                <FaGoogle className="h-5 w-5" />
+                <span>Login with Google</span>
+              </Link>
+            </div>
+          </form>
+        </FormProvider>
       </motion.div>
     </div>
   );

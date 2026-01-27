@@ -3,7 +3,6 @@ import 'swiper/css/autoplay';
 import 'swiper/css/pagination';
 
 import { motion } from 'framer-motion';
-import { useRef } from 'react';
 import { Autoplay, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 
@@ -35,10 +34,10 @@ const heroSlides = [
   },
   {
     id: 3,
-    title: 'Exclusive Collections',
-    subtitle: 'Curated for the Discerning Eye',
+    title: 'Summer Collections',
+    subtitle: 'Sun-Drenched Sophistication',
     description:
-      'Discover our limited-edition pieces that redefine luxury and style, perfect for any occasion.',
+      'Experience the essence of summer with our lightweight fabrics and vibrant patterns, perfectly tailored for your next getaway.',
     buttonText: 'Browse Collections',
     buttonLink: '/collections',
     image: hero3,
@@ -46,8 +45,6 @@ const heroSlides = [
 ];
 
 const Hero = () => {
-  const swiperRef = useRef(null);
-
   return (
     <>
       {/* 1. Critical CSS for bullets since Tailwind won't pick up classes in renderBullet strings */}
@@ -89,7 +86,6 @@ const Hero = () => {
               return `<span class="${className} custom-bullet"></span>`;
             },
           }}
-          onSwiper={(swiper) => (swiperRef.current = swiper)}
           className="h-full w-full"
         >
           {heroSlides.map((slide) => (
@@ -114,7 +110,7 @@ const Hero = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.8 }}
                 >
-                  <span className="bg-primary/80 mb-6 inline-block rounded-full px-4 py-1.5 text-sm font-medium tracking-wide text-white backdrop-blur-sm">
+                  <span className="bg-accent/50 mb-6 inline-block rounded-full px-4 py-1.5 text-sm font-medium tracking-wide text-white backdrop-blur-sm">
                     {slide.subtitle}
                   </span>
                   <h1 className="mb-6 text-4xl leading-tight font-bold md:text-6xl lg:text-7xl">

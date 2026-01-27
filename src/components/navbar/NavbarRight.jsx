@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion';
-import { NavLink } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart';
 
-import { FiHelpCircle, FiLogIn, FiSearch, FiShoppingCart } from 'react-icons/fi';
+import { FiLogIn, FiSearch, FiShoppingCart } from 'react-icons/fi';
 import { useAuth } from '../../hooks/useAuth';
+import BaseNavLink from '../global/BaseNavLink';
+import ExclusiveButton from '../products/ExclusiveButton';
 import NavbarProfile from './NavbarProfile';
 import ToggleCurrency from './ToggleCurrency';
 
@@ -31,9 +32,9 @@ const NavbarRight = ({ containerVariants, itemVariants, toggleSearch }) => {
       <span className="h-6 w-px bg-gray-300" />
 
       {/* Currency Toggle */}
-      <ToggleCurrency itemVariants={itemVariants} />
+      <ToggleCurrency />
 
-      <NavLink to="/cart">
+      <BaseNavLink to="/cart" activeBackgroundClassName="hidden">
         <motion.div
           className="group relative flex cursor-pointer items-center space-x-1 text-gray-700"
           variants={itemVariants}
@@ -47,25 +48,15 @@ const NavbarRight = ({ containerVariants, itemVariants, toggleSearch }) => {
             {cartCount}
           </span>
         </motion.div>
-      </NavLink>
+      </BaseNavLink>
 
-      <NavLink to="help-center">
-        <motion.div
-          className="group flex cursor-pointer items-center space-x-1 text-gray-700"
-          variants={itemVariants}
-          whileHover="hover"
-        >
-          <span className="group-hover:text-primary relative text-gray-600">
-            <FiHelpCircle size={20} />
-          </span>
-          <span className="group-hover:text-primary text-sm font-medium max-sm:hidden">Help</span>
-        </motion.div>
-      </NavLink>
+      {/* go to exclusive products */}
+      <ExclusiveButton />
 
       {user ? (
         <NavbarProfile />
       ) : (
-        <NavLink to="login">
+        <BaseNavLink to="login" activeBackgroundClassName="hidden">
           <motion.button
             className="bg-primary hover:bg-primary/90 inline-flex cursor-pointer items-center space-x-2 rounded-md px-4 py-2 text-white"
             variants={itemVariants}
@@ -76,7 +67,7 @@ const NavbarRight = ({ containerVariants, itemVariants, toggleSearch }) => {
             </span>
             <span className="text-sm font-medium max-sm:hidden">Login</span>
           </motion.button>
-        </NavLink>
+        </BaseNavLink>
       )}
     </motion.div>
   );

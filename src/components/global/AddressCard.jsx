@@ -1,5 +1,4 @@
 const AddressCard = ({ addr }) => {
-  console.log(addr);
   return (
     <div key={addr.id} className="flex items-start gap-3 rounded-lg bg-gray-50 p-5 text-gray-600">
       <div>

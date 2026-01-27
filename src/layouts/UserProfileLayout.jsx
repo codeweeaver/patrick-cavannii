@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useState } from 'react';
 import { FiHeart, FiLogOut, FiMenu, FiSettings, FiShoppingBag, FiUser, FiX } from 'react-icons/fi';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
+import BaseNavLink from '../components/global/BaseNavLink';
 import { useAuth } from '../hooks/useAuth';
 
 const UserProfileLayout = () => {
@@ -67,20 +68,20 @@ const UserProfileLayout = () => {
           {/* Menu Items */}
           <nav className="p-2">
             <ProfileLink
-              to="."
+              to="/profile"
               icon={<FiUser />}
               label="View Profile"
               end
               onClick={() => setIsSidebarOpen(false)}
             />
             <ProfileLink
-              to="wishlist"
+              to="/profile/wishlist"
               icon={<FiHeart />}
               label="Wishlist"
               onClick={() => setIsSidebarOpen(false)}
             />
             <ProfileLink
-              to="orders"
+              to="/profile/orders"
               icon={<FiShoppingBag />}
               label="Orders"
               onClick={() => setIsSidebarOpen(false)}
@@ -88,7 +89,7 @@ const UserProfileLayout = () => {
 
             <div className="my-2 h-px bg-slate-100" />
             <ProfileLink
-              to="settings"
+              to="/settings"
               icon={<FiSettings />}
               label="Account Settings"
               onClick={() => setIsSidebarOpen(false)}
@@ -124,19 +125,21 @@ const UserProfileLayout = () => {
 
 // Helper Component for the Exact Link Style
 const ProfileLink = ({ to, icon, label, end, onClick }) => (
-  <NavLink
+  <BaseNavLink
     to={to}
     end={end}
     onClick={onClick}
-    className={({ isActive }) =>
-      `group mb-2 flex items-center gap-4 rounded-lg px-4 py-3.5 transition-all duration-200 ${isActive ? 'bg-accent/5 text-gray-900' : 'hover:bg-accent/5 text-gray-600'} `
-    }
+    className="mb-2 rounded-lg px-4 py-3.5"
+    activeClassName="text-gray-900"
+    inactiveClassName="text-gray-600 hover:bg-accent/5"
+    activeBackgroundClassName="bg-accent/5 rounded-lg"
+    layoutId="profile-sidebar"
   >
     <span className="text-xl text-slate-500 transition-colors group-hover:text-slate-900">
       {icon}
     </span>
-    <span className="flex-1 text-[16px] font-semibold">{label}</span>
-  </NavLink>
+    <span className="ml-2 flex-1 text-[16px] font-semibold">{label}</span>
+  </BaseNavLink>
 );
 
 export default UserProfileLayout;

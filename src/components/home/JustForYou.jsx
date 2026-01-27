@@ -7,7 +7,7 @@ import 'swiper/css/pagination';
 import { Autoplay, Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { apiClient } from '../../utils/apiClient.js'; // Use your Axios instance
-import ProductCard from '../global/ProductCard';
+import ProductCard from '../products/ProductCard.jsx';
 
 const JustForYou = () => {
   const [products, setProducts] = useState([]);

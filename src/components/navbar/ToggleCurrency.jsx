@@ -24,9 +24,7 @@ const ToggleCurrency = ({ itemVariants }) => {
         onClick={() => setIsCurrencyOpen(!isCurrencyOpen)}
       >
         <img src={activeCurrency.flag} alt={activeCurrency.code} className="h-3 w-4" />
-        <span className="group-hover:text-primary text-sm font-medium max-sm:hidden">
-          {activeCurrency.code}
-        </span>
+        <span className="group-hover:text-primary text-sm font-medium">{activeCurrency.code}</span>
 
         <span className="group-hover:text-primary relative text-gray-600">
           <FiChevronDown

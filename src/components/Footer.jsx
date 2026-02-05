@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
+import { motion } from 'framer-motion';
 import { FaFacebook, FaInstagram, FaTiktok, FaTwitter, FaYoutube } from 'react-icons/fa';
 import { Link, NavLink } from 'react-router-dom';
 import Logo from '../assets/images/logo.png';

@@ -1,29 +1,18 @@
-import { createContext, useEffect, useReducer } from 'react';
-
+import { createContext, useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { api } from '../utils/index';
 const WishlistContext = createContext();
-
-const getInitialWishlist = () => {
-  const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user'));
-  return {
-    items: user?.wishlist || [],
-  };
-};
 
 const wishReducer = (state, action) => {
   switch (action.type) {
     case 'TOGGLE_WISHLIST': {
       const product = action.payload;
       const isExist = state.items.find((item) => item.id === product.id);
-
-      if (isExist) {
-        return {
-          ...state,
-          items: state.items.filter((item) => item.id !== product.id),
-        };
-      }
       return {
         ...state,
-        items: [...state.items, product],
+        items: isExist
+          ? state.items.filter((item) => item.id !== product.id)
+          : [...state.items, product],
       };
     }
     case 'REMOVE_FROM_WISHLIST':
@@ -32,90 +21,101 @@ const wishReducer = (state, action) => {
         items: state.items.filter((item) => item.id !== action.payload),
       };
     case 'SET_WISHLIST':
-      return {
-        ...state,
-        items: action.payload,
-      };
+      return { ...state, items: action.payload };
     case 'CLEAR_WISHLIST':
-      return {
-        ...state,
-        items: [],
-      };
+      return { ...state, items: [] };
     default:
       return state;
   }
 };
 
 export const WishlistProvider = ({ children }) => {
-  const [state, dispatch] = useReducer(wishReducer, null, getInitialWishlist);
+  const { user } = useAuth();
+  const [state, dispatch] = useReducer(wishReducer, { items: [] });
 
-  // Sync wishlist with the user object in localStorage
+  // Track server state to prevent redundant API calls
+  const lastSyncedItems = useRef([]);
+  // Track if initial load has finished
+  const isLoaded = useRef(false);
+
+  // 1. Initial Fetch logic
   useEffect(() => {
-    let user = JSON.parse(localStorage.getItem('user'));
-    let storage = localStorage;
+    let isMounted = true;
 
-    if (!user) {
-      user = JSON.parse(sessionStorage.getItem('user'));
-      storage = sessionStorage;
+    if (user?.token && user?.id) {
+      api
+        .get(`/users/${user.id}`) // Usually you fetch the user object containing the wishlist
+        .then((data) => {
+          if (!isMounted) return;
+
+          // Adjust this based on your API structure (e.g., data.wishlist or data.items)
+          const items = data.wishlist || data.items || [];
+          lastSyncedItems.current = items;
+          dispatch({ type: 'SET_WISHLIST', payload: items });
+          isLoaded.current = true;
+        })
+        .catch((err) => {
+          console.error('Wishlist fetch error:', err);
+          isLoaded.current = true; // Set to true anyway to allow local changes
+        });
+    } else {
+      dispatch({ type: 'CLEAR_WISHLIST' });
+      isLoaded.current = false;
     }
-    const allUsers = JSON.parse(localStorage.getItem('users')) || [];
 
-    if (user) {
-      const updatedUser = { ...user, wishlist: state.items };
-      storage.setItem('user', JSON.stringify(updatedUser));
-
-      const updatedUsersList = allUsers.map((u) => (u.id === user.id ? updatedUser : u));
-      localStorage.setItem('users', JSON.stringify(updatedUsersList));
-
-      // 3. Persist to Backend (Fix for data loss on logout/login)
-      if (user.id) {
-        fetch(`import.meta.env.VITE_API_URL/users/${user.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ wishlist: state.items }),
-        }).catch((err) => console.error('Failed to sync wishlist to server:', err));
-      }
-    }
-  }, [state.items]);
-
-  // Sync state if localStorage changes (e.g., login/logout)
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const user = JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user'));
-      dispatch({ type: 'SET_WISHLIST', payload: user?.wishlist || [] });
+    return () => {
+      isMounted = false;
     };
+  }, [user?.token, user?.id]);
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+  // 2. Automated Sync (Persistence)
+  useEffect(() => {
+    // Only sync if:
+    // 1. User is logged in
+    // 2. Initial fetch has finished
+    // 3. Local state differs from the last thing we synced with the server
+    const hasChanged = JSON.stringify(state.items) !== JSON.stringify(lastSyncedItems.current);
+
+    if (user?.id && isLoaded.current && hasChanged) {
+      api
+        .patch(`/users/${user.id}`, { wishlist: state.items })
+        .then(() => {
+          lastSyncedItems.current = state.items;
+        })
+        .catch((err) => console.error('Wishlist sync failed:', err));
+    }
+  }, [state.items, user?.id]);
+
+  // 3. Memoized Helper Functions
+  // Using useCallback ensures these functions don't change on every render
+  const toggleWishlist = useCallback((product) => {
+    dispatch({ type: 'TOGGLE_WISHLIST', payload: product });
   }, []);
 
-  const toggleWishlist = (product) => {
-    dispatch({ type: 'TOGGLE_WISHLIST', payload: product });
-  };
-
-  const removeFromWishlist = (productId) => {
+  const removeFromWishlist = useCallback((productId) => {
     dispatch({ type: 'REMOVE_FROM_WISHLIST', payload: productId });
-  };
+  }, []);
 
-  const isInWishlist = (productId) => {
-    return state.items.some((item) => item.id === productId);
-  };
-
-  return (
-    <WishlistContext.Provider
-      value={{
-        wishlistItems: state.items,
-        toggleWishlist,
-        removeFromWishlist,
-        isInWishlist,
-        wishlistCount: state.items.length,
-      }}
-    >
-      {children}
-    </WishlistContext.Provider>
+  const isInWishlist = useCallback(
+    (productId) => {
+      return state.items.some((item) => item.id === productId);
+    },
+    [state.items],
   );
+
+  // 4. Memoize the final context value
+  const value = useMemo(
+    () => ({
+      wishlistItems: state.items,
+      toggleWishlist,
+      removeFromWishlist,
+      isInWishlist,
+      wishlistCount: state.items.length,
+    }),
+    [state.items, toggleWishlist, removeFromWishlist, isInWishlist],
+  );
+
+  return <WishlistContext.Provider value={value}>{children}</WishlistContext.Provider>;
 };
 
 export default WishlistContext;

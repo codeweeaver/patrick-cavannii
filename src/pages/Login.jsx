@@ -1,17 +1,22 @@
 import { yupResolver } from '@hookform/resolvers/yup';
+import { motion } from 'framer-motion';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FaGoogle } from 'react-icons/fa';
 import { FiLock, FiMail } from 'react-icons/fi';
 import { Link, useNavigate } from 'react-router-dom';
 import { loginSchema } from '../schema/index';
 
-import { Input } from '../components/global/Input';
+import { CheckboxInput } from '../components/forms/CheckboxInput';
+import { TextInput } from '../components/forms/TextInput';
 import { useAuth } from '../hooks/useAuth';
-import { useLoading } from '../hooks/useLoading';
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
+};
 
 const Login = () => {
   const { loginUser } = useAuth();
-  const { startLoading, stopLoading } = useLoading();
   const navigate = useNavigate();
 
   const methods = useForm({
@@ -20,15 +25,12 @@ const Login = () => {
   });
 
   const onSubmit = async (data) => {
-    startLoading();
     try {
       // Implement login logic here
       await loginUser(data.email, data.password, data.rememberMe);
       navigate('/');
     } catch (error) {
       console.error('Login failed:', error);
-    } finally {
-      stopLoading();
     }
   };
 
@@ -46,35 +48,24 @@ const Login = () => {
 
       <FormProvider {...methods}>
         <form className="space-y-6" onSubmit={methods.handleSubmit(onSubmit)}>
-          <Input
-            name="email"
-            label="Email"
-            type="email"
-            id="email"
-            placeholder="Enter your email"
-            icon={<FiMail />}
-          />
+          {/* email */}
+          <motion.div className="mb-4" variants={itemVariants}>
+            <TextInput name="email" label="Email" type="email" icon={<FiMail />} />
+          </motion.div>
 
-          <Input
-            name="password"
-            label="Password"
-            type="password"
-            id="password"
-            placeholder="Enter your password"
-            icon={<FiLock />}
-          />
+          {/* password */}
+          <motion.div className="mb-4" variants={itemVariants}>
+            <TextInput
+              name="password"
+              label="Password"
+              type="password"
+              icon={<FiLock />} // Using Lock icon for the left side
+            />
+          </motion.div>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Input
-                name="rememberMe"
-                id="rememberMe"
-                type="checkbox"
-                className="text-primary focus:ring-primary h-4 w-4 rounded border-gray-300"
-              />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                Remember me
-              </label>
+              <CheckboxInput name="rememberMe" label="Remember me" />
             </div>
             <Link
               to="/forgot-password"
@@ -102,7 +93,7 @@ const Login = () => {
             </div>
           </div>
 
-          {/* signup with social media */}
+          {/* signin with social media */}
           <div className="mt-6 flex items-center justify-center gap-5">
             {/* Google */}
             <Link

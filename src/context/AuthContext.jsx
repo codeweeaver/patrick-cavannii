@@ -1,7 +1,7 @@
 import { createContext, useCallback, useMemo, useRef, useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { useLoading } from '../hooks/useLoading';
-import { apiClient } from '../utils/apiClient';
+import { api } from '../utils/index';
 
 const AuthContext = createContext(null);
 
@@ -15,48 +15,67 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const { startLoading, stopLoading } = useLoading();
 
+  console.log(api);
+
   const userRef = useRef(user);
   userRef.current = user;
+
+  const registerUser = useCallback(
+    async (userData) => {
+      startLoading();
+      try {
+        const responseData = await api.post('users/register/', userData, {
+          includeAuth: false,
+        });
+        if (responseData) {
+          setUser(responseData.user || responseData);
+          localStorage.setItem('user', JSON.stringify(responseData.user || responseData));
+          toast.success('User registered successfully.');
+        }
+        return responseData;
+      } finally {
+        stopLoading();
+      }
+    },
+    [startLoading, stopLoading],
+  );
 
   const loginUser = useCallback(
     async (email, password, rememberMe = false) => {
       startLoading();
       try {
-        const res = await fetch(`${import.meta.env.VITE_API_URL}/users`);
-
-        if (!res.ok) {
-          throw new Error(`Invalid Credientials`);
-        }
-        const data = await res.json();
-
-        const foundUser = data.find((u) => u.email === email && u.password === password);
-
-        if (!foundUser) {
+        const { data: responseData } = await api.post(
+          '/users/login/',
+          { email, password },
+          { includeAuth: false },
+        );
+        console.log(responseData);
+        if (!responseData || !responseData.token || !responseData.user) {
           throw new Error('Invalid email or password');
         }
 
-        const {
-          password: _password,
-          comfirmPassword: _comfirmPassword,
-          createdAt: _createdAt,
-          ...userWithoutPassword
-        } = foundUser;
+        // 2. Update state using the collected object
+        setUser(responseData.user);
+        setToken(responseData.token);
 
-        setUser(userWithoutPassword);
+        // 4. Persistence
+        // Clear both storages first to ensure no stale data remains
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+        sessionStorage.removeItem('token');
 
         const storage = rememberMe ? localStorage : sessionStorage;
-        storage.setItem('user', JSON.stringify(userWithoutPassword));
-
-        const newToken = `sample-token-${Date.now()}`;
-        setToken(newToken);
-        storage.setItem('token', JSON.stringify(newToken));
-
+        storage.setItem('user', JSON.stringify(responseData.user));
+        storage.setItem('token', JSON.stringify(responseData.token));
         toast.success('Logged in successfully.');
-        return userWithoutPassword;
       } catch (error) {
-        const message = error.message || 'Login failed';
-        toast.error(message);
-        throw error; // <-- Crucial: Re-throw the error
+        const message = error.response?.data?.message || error.message || 'Login failed';
+        setError(message);
+        if (error.message === 'Invalid email or password' || !error.response) {
+          toast.error(message);
+        }
+        throw error;
       } finally {
         stopLoading();
       }
@@ -66,23 +85,30 @@ export const AuthProvider = ({ children }) => {
 
   const logOut = useCallback(async () => {
     try {
+      // 1. Added the trailing slash: '/users/logout/'
+      // 2. Axios doesn't use '.ok', it throws if the request fails
+      await api.post('/users/logout/', null, { includeAuth: true });
+
+      toast.success('Logged out successfully.');
+    } catch (error) {
+      // We log the error, but we don't block the UI cleanup
+      console.error('Server-side logout error:', error.message);
+    } finally {
+      // 3. Always clear the session locally
       setUser(null);
       setToken(null);
       localStorage.removeItem('user');
       localStorage.removeItem('token');
       sessionStorage.removeItem('user');
       sessionStorage.removeItem('token');
-    } catch (error) {
-      console.error('Error logging out:', error);
-      toast.error('Error logging out.');
     }
   }, []);
 
   const deleteUser = useCallback(
     async (id) => {
+      startLoading();
       try {
-        startLoading();
-        await apiClient.delete(`/users/${id}`);
+        await api.delete(`/users/${id}`);
 
         if (user?.id === id) {
           await logOut();
@@ -99,14 +125,14 @@ export const AuthProvider = ({ children }) => {
         stopLoading();
       }
     },
-    [startLoading, stopLoading, user, logOut],
+    [user, logOut, startLoading, stopLoading],
   );
 
   const updateUser = useCallback(
     async (id, updatedUser) => {
+      startLoading();
       try {
-        startLoading();
-        const res = await apiClient.patch(`/users/${id}`, updatedUser);
+        const res = await api.patch(`/users/${id}`, updatedUser);
 
         // Update local state with the response from server
         setUser(res);
@@ -154,28 +180,67 @@ export const AuthProvider = ({ children }) => {
 
     // Persist to backend
     try {
-      await apiClient.patch(`/users/${currentUser.id}`, {
-        history: updatedUser.history,
-      });
+      await api.patch(`/users/${currentUser.id}`, { history: updatedUser.history });
     } catch (error) {
       console.error('Failed to sync history with server', error);
     }
   }, []);
+
+  const verifyCurrentPassword = useCallback(
+    async (password) => {
+      try {
+        if (!user?.id) return false;
+        // Fetch fresh user data to check password
+        const res = await api.get(`/users/${user.id}`);
+        // Compare plain text passwords (since that's how they are stored in this mock setup)
+        return res.password === password;
+      } catch (error) {
+        console.error('Password verification failed:', error);
+        return false;
+      }
+    },
+    [user],
+  );
+
+  const changePassword = useCallback(
+    async (currentPassword, newPassword) => {
+      const isValid = await verifyCurrentPassword(currentPassword);
+      if (!isValid) throw new Error('Incorrect current password');
+
+      return await updateUser(user.id, { password: newPassword });
+    },
+    [verifyCurrentPassword, updateUser, user],
+  );
 
   // This listener is now the SINGLE source of truth
 
   const authValue = useMemo(
     () => ({
       user,
+      token,
+      registerUser,
       loginUser,
       deleteUser,
       updateUser,
       logOut,
-      token,
       error,
       addToHistory,
+      verifyCurrentPassword,
+      changePassword,
     }),
-    [user, token, error, loginUser, logOut, addToHistory, deleteUser, updateUser],
+    [
+      user,
+      error,
+      token,
+      registerUser,
+      loginUser,
+      logOut,
+      addToHistory,
+      deleteUser,
+      updateUser,
+      verifyCurrentPassword,
+      changePassword,
+    ],
   );
 
   return <AuthContext.Provider value={authValue}>{children}</AuthContext.Provider>;

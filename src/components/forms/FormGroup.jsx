@@ -1,9 +1,13 @@
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { FiCheckCircle } from 'react-icons/fi';
 import { InputError } from '../global/InputError';
 
-export const FormGroup = ({ label, error, children, icon, id }) => {
+export const FormGroup = ({ label, error, children, icon, id, isMarked, errorClass }) => {
+  // A field is "marked" only if it's valid (no error) and isMarked is true
+  const showCheck = isMarked && !error;
+
   return (
-    <div className="flex w-full flex-col gap-1.5">
+    <div className="relative flex w-full flex-col gap-1.5">
       <div className="flex min-h-[18px] items-end justify-between px-1">
         {label && (
           <label
@@ -15,7 +19,9 @@ export const FormGroup = ({ label, error, children, icon, id }) => {
         )}
 
         <AnimatePresence mode="wait">
-          {error?.message && <InputError message={error.message} key={error.message} />}
+          {error?.message && (
+            <InputError message={error.message} key={error.message} className={errorClass} />
+          )}
         </AnimatePresence>
       </div>
 
@@ -25,7 +31,21 @@ export const FormGroup = ({ label, error, children, icon, id }) => {
             {icon}
           </div>
         )}
+
         {children}
+
+        <AnimatePresence>
+          {showCheck && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute top-1/2 right-4 z-10 -translate-y-1/2 text-green-500"
+            >
+              <FiCheckCircle size={12} strokeWidth={3} />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

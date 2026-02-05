@@ -3,24 +3,48 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { motion } from 'framer-motion';
 import { FormProvider, useForm } from 'react-hook-form';
 import { FaGoogle } from 'react-icons/fa';
-import { FiUser } from 'react-icons/fi';
-import { Link } from 'react-router-dom';
+import { FiLock, FiMail, FiUser } from 'react-icons/fi';
+import { Link, useNavigate } from 'react-router-dom';
+import { CheckboxInput } from '../components/forms/CheckboxInput';
 import { TextInput } from '../components/forms/TextInput';
+import { useAuth } from '../hooks/useAuth';
 import { registerSchema } from '../schema';
 
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: { y: 0, opacity: 1 },
+};
+
 const Register = () => {
+  const { registerUser } = useAuth();
+  const navigate = useNavigate();
+
   const methods = useForm({
     defaultValues: {
-      name: '',
+      fullName: '',
       email: '',
       password: '',
       comfirmPassword: '',
+      terms: false,
     },
     resolver: yupResolver(registerSchema),
   });
 
   const onSubmit = async (data) => {
-    console.log(data);
+    try {
+      const newUser = {
+        email: data.email,
+        password: data.password,
+        comfirmPassword: data.comfirmPassword,
+        full_name: data.fullName,
+        profile_picture_url: '',
+        role: 'admin',
+      };
+      await registerUser(newUser);
+      navigate('/login');
+    } catch (error) {
+      console.error('Registration failed:', error);
+    }
   };
 
   return (
@@ -46,12 +70,58 @@ const Register = () => {
 
         <FormProvider {...methods}>
           <form onSubmit={methods.handleSubmit(onSubmit)}>
-            <TextInput name="fullname" label="Full Name" type="text" icon={<FiUser />} />
+            {/* fullname */}
+            <motion.div className="mb-4" variants={itemVariants}>
+              <TextInput name="fullName" label="Full Name" icon={<FiUser />} />
+            </motion.div>
+
+            {/* email */}
+            <motion.div className="mb-4" variants={itemVariants}>
+              <TextInput name="email" label="Email" type="email" icon={<FiMail />} />
+            </motion.div>
+
+            {/* password */}
+            <motion.div className="mb-4" variants={itemVariants}>
+              <TextInput
+                name="password"
+                label="Password"
+                type="password"
+                icon={<FiLock />} // Using Lock icon for the left side
+                isMarked={true}
+              />
+            </motion.div>
+
+            {/* confirm password */}
+            <motion.div className="mb-4" variants={itemVariants}>
+              <TextInput
+                name="comfirmPassword"
+                label="Comfirm Password"
+                type="password"
+                isMarked={true} // This will show the checkmark only when matching
+                icon={<FiLock />}
+                placeholder="Repeat your password"
+              />
+            </motion.div>
+
+            {/* terms */}
+            <motion.div className="mb-4 flex justify-center" variants={itemVariants}>
+              <CheckboxInput
+                name="terms"
+                label={
+                  <span>
+                    I agree to the
+                    <Link to="/terms-and-conditions" className="text-primary ml-2 hover:underline">
+                      Terms and Conditions
+                    </Link>
+                  </span>
+                }
+              />
+            </motion.div>
 
             <div>
               <button
                 type="submit"
-                className="bg-primary/90 hover:bg-primary focus:ring-primary flex w-full justify-center rounded-md border border-transparent px-6 py-3 text-sm font-medium text-white uppercase shadow-sm transition-all hover:scale-101 focus:ring-2 focus:ring-offset-2 focus:outline-none"
+                className="bg-primary/90 hover:bg-primary focus:ring-primary mt-10 flex w-full cursor-pointer justify-center rounded-md border border-transparent px-6 py-3 text-sm font-medium text-white uppercase shadow-sm transition-all hover:scale-101 focus:ring-2 focus:ring-offset-2 focus:outline-none"
               >
                 Register
               </button>

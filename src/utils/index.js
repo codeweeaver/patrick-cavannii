@@ -1,5 +1,3 @@
-import { apiClient } from './apiClient';
-import { findInputError } from './findInputError';
-import { isFormInvalid } from './isFormInvalid';
+import api from './api';
 
-export { apiClient, findInputError, isFormInvalid };
+export { api };

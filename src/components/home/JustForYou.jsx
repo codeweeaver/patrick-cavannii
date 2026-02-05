@@ -6,7 +6,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import { Autoplay, Navigation, Pagination } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { apiClient } from '../../utils/apiClient.js'; // Use your Axios instance
+import api from '../../utils/api.js';
 import ProductCard from '../products/ProductCard.jsx';
 
 const JustForYou = () => {
@@ -17,8 +17,7 @@ const JustForYou = () => {
     const fetchRecommendations = async () => {
       try {
         // Use apiClient to automatically handle the Base URL from Netlify Env Vars
-        const data = await apiClient.get('/products');
-
+        const data = await api.get('/products/', null, { includeAuth: true });
         // Logic: Filter high-rated -> Shuffle -> Slice
         const recommended = data
           .filter((item) => Number(item.rating) >= 4.0)

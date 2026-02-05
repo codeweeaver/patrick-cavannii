@@ -89,7 +89,7 @@ const NavbarProfile = () => {
                   <div className="absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></div>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-bold text-gray-900">{user.name}</p>
+                  <p className="truncate font-bold text-gray-900">{user.full_name}</p>
                   <p className="truncate text-xs text-gray-500">{user.email}</p>
                 </div>
               </div>

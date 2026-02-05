@@ -1,20 +1,14 @@
-import { useState } from 'react';
-import { FiBox, FiHeart, FiMail, FiMapPin, FiPhone, FiShoppingBag, FiUser } from 'react-icons/fi';
+import { FiBox, FiHeart, FiMapPin, FiShoppingBag } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import AddressForm from '../../components/forms/AddressForm';
-import PersonalForm from '../../components/forms/PersonalForm';
 import AddressCard from '../../components/global/AddressCard';
 import AnimatedPage from '../../components/global/AnimatedPage';
-import Modal from '../../components/global/Modal';
 import { useAuth } from '../../hooks/useAuth';
 
 const UserOverview = () => {
   const { user, error } = useAuth();
-  const [showPersonalForm, setshowPersonalForm] = useState(false);
-  const [showAddressForm, setShowAddressForm] = useState(false);
 
   // Mock stats since orders might not be fully implemented in db.json yet
   const stats = [
@@ -41,14 +35,6 @@ const UserOverview = () => {
     },
   ];
 
-  const toggleAddressForm = () => {
-    setShowAddressForm((prev) => !prev);
-  };
-
-  const togglePersonalForm = () => {
-    setshowPersonalForm((prev) => !prev);
-  };
-
   if (error) {
     return (
       <h2 className="text-red-500">
@@ -59,19 +45,12 @@ const UserOverview = () => {
 
   return (
     <AnimatedPage>
-      {/* addressess form */}
-      <Modal isOpen={showAddressForm} onClose={toggleAddressForm} title="Add An Address">
-        <AddressForm closeModal={toggleAddressForm} />
-      </Modal>
-
-      {/* personal form model */}
-      <Modal isOpen={showPersonalForm} onClose={togglePersonalForm} title="Update Personal Info">
-        <PersonalForm closeModal={togglePersonalForm} />
-      </Modal>
       <div className="space-y-8">
         {/* Welcome Section */}
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Welcome, {user.name?.split(' ')[0]}!</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Welcome, {user.user.full_name?.split(' ')[0]}!
+          </h2>
           <p className="mt-1 text-gray-500">
             From your account dashboard you can view your recent orders, manage your shipping and
             billing addresses, and edit your password and account details.
@@ -100,56 +79,44 @@ const UserOverview = () => {
         </div>
 
         {/* Info Grid */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          {/* Profile Information */}
+        <div className="">
+          {/* Address Book Section */}
           <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="mb-6 flex items-center justify-between">
-              <h3 className="text-md font-bold text-gray-900">Profile Information</h3>
-              <button
-                onClick={togglePersonalForm}
-                className="text-primary text-sm font-medium hover:underline"
+            {user.address?.length > 0 && (
+              <Link
+                to="address"
+                className="text-primary mb-3 inline-block text-xs font-medium uppercase hover:underline"
               >
-                Edit
-              </button>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 text-gray-600">
-                <FiUser className="h-5 w-5 text-gray-400" />
-                <span>{user.name}</span>
-              </div>
-              <div className="flex items-center gap-3 text-gray-600">
-                <FiMail className="h-5 w-5 text-gray-400" />
-                <span>{user.email.slice(0, 18)}...</span>
-              </div>
-              <div className="flex items-center gap-3 text-gray-600">
-                <FiPhone className="h-5 w-5 text-gray-400" />
-                <span>{user.phone || 'No phone number added'}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Address Book with Swiper */}
-          <div className="overflow-hidden rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex gap-1">
-                <FiMapPin className="text-primary h-5 w-5" />
-                <h3 className="text-md self-end font-bold text-gray-900">Shipping Address</h3>
-              </div>
-              <Link to="address" className="text-primary text-sm font-medium hover:underline">
-                Manage
+                manage all
               </Link>
-            </div>
+            )}
 
-            {user.addressess?.map((addr, index) => {
-              // Only render the card if it's the default one
-              if (!addr.isDefault) return null;
-
-              return <AddressCard key={index} addr={addr} />;
-            })}
-
-            {/* Fallback if no address is found */}
-            {(!user.addressess || user.addressess.length === 0) && (
-              <p className="text-sm text-gray-400 italic">No addresses saved.</p>
+            {/* Address Display Logic */}
+            {user.address?.some((addr) => addr.isDefault) ? (
+              <div className="space-y-4">
+                {user.address
+                  .filter((addr) => addr.isDefault)
+                  .map((addr) => (
+                    <AddressCard key={addr.id} addr={addr} />
+                  ))}
+              </div>
+            ) : (
+              /* Fallback UI when no default address exists */
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50/50 py-8 text-center">
+                <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-sm">
+                  <FiMapPin className="h-6 w-6 text-gray-300" />
+                </div>
+                <h4 className="text-sm font-bold text-gray-900">No Default Address</h4>
+                <p className="mt-1 mb-4 max-w-[200px] text-xs text-gray-500">
+                  Please set a primary address for faster checkout.
+                </p>
+                <Link
+                  to={user.address?.length > 0 ? 'address' : 'address/create'}
+                  className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-bold tracking-wider text-gray-900 uppercase shadow-sm transition-colors hover:bg-gray-50"
+                >
+                  {user.address?.length > 0 ? 'Set Default' : 'Add New Address'}
+                </Link>
+              </div>
             )}
           </div>
         </div>

@@ -27,12 +27,12 @@ import AuthGuard from '../guards/AuthGuard';
 //User Profiles Pages
 const UserOrders = lazy(() => import('../../pages/profile/UserOrders'));
 const UserSettings = lazy(() => import('../../pages/profile/UserSettings'));
+const TwoFactorSetup = lazy(() => import('../../pages/profile/TwoFactorSetup'));
 const UserWishlist = lazy(() => import('../../pages/profile/UserWishlist'));
 const UserReviews = lazy(() => import('../../pages/profile/UserReviews'));
 const UserOverview = lazy(() => import('../../pages/profile/UserOverview'));
 const AddressList = lazy(() => import('../../pages/profile/AddressList'));
-const EditAddress = lazy(() => import('../../pages/profile/EditAddress'));
-const CreateAddress = lazy(() => import('../../pages/profile/CreateAddress'));
+const AddressForm = lazy(() => import('../../pages/profile/AddressForm'));
 
 // Exclusive Products
 const ExclusiveProducts = lazy(() => import('../../pages/products/ExclusiveProducts'));
@@ -109,7 +109,7 @@ export const publicRoutes = [
 
       // Protected Routes
       {
-        element: <AuthGuard allowedRoles={['user']} />,
+        element: <AuthGuard allowedRoles={['customer']} />,
         children: [
           {
             path: 'exclusive',
@@ -189,15 +189,15 @@ export const publicRoutes = [
                 path: 'address/create',
                 element: (
                   <Suspended>
-                    <CreateAddress />
+                    <AddressForm />
                   </Suspended>
                 ),
               },
               {
-                path: 'address/edit/:addressId',
+                path: 'address/edit/:id',
                 element: (
                   <Suspended>
-                    <EditAddress />
+                    <AddressForm />
                   </Suspended>
                 ),
               },
@@ -230,6 +230,14 @@ export const publicRoutes = [
                 element: (
                   <Suspended>
                     <UserSettings />
+                  </Suspended>
+                ),
+              },
+              {
+                path: 'settings/2fa',
+                element: (
+                  <Suspended>
+                    <TwoFactorSetup />
                   </Suspended>
                 ),
               },

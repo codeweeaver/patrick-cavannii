@@ -1,19 +1,15 @@
 import { motion } from 'framer-motion';
 import burberry from '../../assets/images/brands/burberry.avif';
-import cartier from '../../assets/images/brands/cartier.avif';
 import fendi from '../../assets/images/brands/fendi.avif';
 import gucci from '../../assets/images/brands/gucci.avif';
 import nike from '../../assets/images/brands/nike.avif';
-import rolex from '../../assets/images/brands/rolex.avif';
 import versace from '../../assets/images/brands/versace.avif';
 
 const brands = [
   { id: 1, name: 'Burberry', logo: burberry },
-  { id: 2, name: 'Cartier', logo: cartier },
   { id: 3, name: 'Gucci', logo: gucci },
   { id: 4, name: 'Nike', logo: nike },
   { id: 5, name: 'Versace', logo: versace },
-  { id: 6, name: 'Rolex', logo: rolex },
   { id: 7, name: 'Fendi', logo: fendi },
 ];
 
@@ -68,7 +64,7 @@ const SupportingBrands = () => {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: '-100px' }}
-          className="grid grid-cols-2 items-center gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7"
+          className="grid grid-cols-2 items-center gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
         >
           {brands.map((brand) => (
             <motion.div

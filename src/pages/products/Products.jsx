@@ -17,6 +17,8 @@ import ProductCard from '../../components/products/ProductCard';
 import ProductListItem from '../../components/products/ProductListItem';
 import { useCurrency } from '../../context/CurrencyContext';
 import { useCart } from '../../hooks/useCart';
+// Import the apiClient utility
+import { api } from '../../utils';
 
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -98,23 +100,26 @@ const Products = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+        // Updated to use the apiClient (api.get)
         const [pRes, cRes, bRes] = await Promise.allSettled([
-          fetch(`${baseUrl}/products?isExclusive=false`).then((r) => r.json()),
-          fetch(`${baseUrl}/categories`).then((r) => r.json()),
-          fetch(`${baseUrl}/brands`).then((r) => r.json()),
+          api.get('/products/', null, { includeAuth: true }),
+          api.get('/categories/'),
+          api.get('/brands/'),
         ]);
+
         if (pRes.status === 'fulfilled') setProducts(pRes.value);
         if (cRes.status === 'fulfilled') setCategories(cRes.value);
         if (bRes.status === 'fulfilled') setBrands(bRes.value);
       } catch (err) {
-        console.error(err);
+        console.error('Failed to fetch data:', err);
       } finally {
         setIsLoading(false);
       }
     };
     fetchData();
   }, []);
+
+  console.log(products);
 
   // Reset pagination when any filter changes
   useEffect(() => {
@@ -427,7 +432,6 @@ const FilterDropdown = ({ label, value, onChange, options, prefix = '' }) => (
       >
         <option value="Any">Any {label}</option>
         {options.map((opt, i) => {
-          // Handle both object options {name, slug} and string options
           const optionValue = opt.slug || opt.name || opt;
           const optionLabel = opt.name || opt;
           return (

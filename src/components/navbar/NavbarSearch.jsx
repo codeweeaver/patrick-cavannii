@@ -1,15 +1,14 @@
-// c:/Users/CODEWEEAVER/Desktop/react-wp-app/patrick-cavanni/src/components/navbar/NavbarSearch.jsx
 import { AnimatePresence, motion } from 'framer-motion';
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  FiSearch,
-  FiX,
   FiArrowRight,
-  FiPackage,
   FiFileText,
-  FiTag,
   FiHash,
   FiHelpCircle,
+  FiPackage,
+  FiSearch,
+  FiTag,
+  FiX,
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 
@@ -27,7 +26,11 @@ const NavbarSearch = ({ isOpen, onClose }) => {
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [recentSearches, setRecentSearches] = useState([]);
+  const [activeItemIndex, setActiveItemIndex] = useState(-1);
+
   const searchTimeout = useRef(null);
+  const resultsContainerRef = useRef(null);
+  const inputRef = useRef(null);
 
   // Load recent searches on mount
   useEffect(() => {
@@ -63,7 +66,6 @@ const NavbarSearch = ({ isOpen, onClose }) => {
     try {
       const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
-      // Fire all requests at once for speed
       const [prodRes, blogRes, brandRes, catRes] = await Promise.all([
         fetch(`${baseUrl}/products?q=${trimmedQuery}&_limit=10`),
         fetch(`${baseUrl}/blogs?q=${trimmedQuery}&_limit=10`),
@@ -76,16 +78,13 @@ const NavbarSearch = ({ isOpen, onClose }) => {
       const brands = await brandRes.json();
       const categories = await catRes.json();
 
-      // Client-side filter for static help pages
       const helpMatches = staticPages.filter((page) =>
         page.name.toLowerCase().includes(trimmedQuery.toLowerCase()),
       );
 
-      // Helper for secondary filtering to ensure strict matching in visible fields
       const matchesQuery = (text) =>
         text ? text.toLowerCase().includes(trimmedQuery.toLowerCase()) : false;
 
-      // Combine and apply strict secondary filter
       const combinedResults = [
         ...products
           .filter((item) => matchesQuery(item.name) || matchesQuery(item.category))
@@ -105,12 +104,11 @@ const NavbarSearch = ({ isOpen, onClose }) => {
           .map((item) => ({
             ...item,
             type: 'Category',
-            link: `/products?category=${item.name}`,
+            link: `/products?category=${item.slug || item.id}`,
           })),
         ...helpMatches.map((item) => ({ ...item, type: 'Help', link: item.url })),
       ];
 
-      // Sort results by relevance (optional, but keep it simple for now)
       setResults(combinedResults);
     } catch (err) {
       console.error('Global search failed', err);
@@ -120,64 +118,59 @@ const NavbarSearch = ({ isOpen, onClose }) => {
   }, []);
 
   useEffect(() => {
-    if (searchTimeout.current) {
-      clearTimeout(searchTimeout.current);
-    }
-
-    searchTimeout.current = setTimeout(() => {
-      performSearch(searchTerm);
-    }, 300);
-
-    return () => {
-      if (searchTimeout.current) {
-        clearTimeout(searchTimeout.current);
-      }
-    };
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    searchTimeout.current = setTimeout(() => performSearch(searchTerm), 300);
+    return () => clearTimeout(searchTimeout.current);
   }, [searchTerm, performSearch]);
 
-  // Prevent body scroll when search is open
+  // Handle Body Scroll and Keyboard Shortcuts (Esc)
   useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      window.addEventListener('keydown', handleKeyDown);
+      // Auto focus input when opened
+      setTimeout(() => inputRef.current?.focus(), 100);
     } else {
       document.body.style.overflow = 'unset';
     }
+
     return () => {
       document.body.style.overflow = 'unset';
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
-  // Keyboard navigation
-  const [activeItemIndex, setActiveItemIndex] = useState(-1);
-  const resultsContainerRef = useRef(null);
-
+  // Arrow Key Navigation
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'Escape') onClose();
+    const handleNavigation = (e) => {
+      if (!isOpen || results.length === 0) return;
 
-      if (results.length > 0) {
-        if (e.key === 'ArrowDown') {
-          e.preventDefault();
-          setActiveItemIndex((prev) => (prev < results.length - 1 ? prev + 1 : prev));
-        } else if (e.key === 'ArrowUp') {
-          e.preventDefault();
-          setActiveItemIndex((prev) => (prev > 0 ? prev - 1 : prev));
-        } else if (e.key === 'Enter' && activeItemIndex >= 0) {
-          e.preventDefault();
-          const activeItem = results[activeItemIndex];
-          if (activeItem) {
-            saveToHistory(searchTerm);
-            window.location.href = activeItem.link; // Direct navigation for enter key
-            onClose();
-          }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setActiveItemIndex((prev) => (prev < results.length - 1 ? prev + 1 : prev));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setActiveItemIndex((prev) => (prev > 0 ? prev - 1 : prev));
+      } else if (e.key === 'Enter' && activeItemIndex >= 0) {
+        e.preventDefault();
+        const activeItem = results[activeItemIndex];
+        if (activeItem) {
+          saveToHistory(searchTerm);
+          window.location.href = activeItem.link;
+          onClose();
         }
       }
     };
-    if (isOpen) {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose, results, activeItemIndex, searchTerm, saveToHistory]);
+
+    window.addEventListener('keydown', handleNavigation);
+    return () => window.removeEventListener('keydown', handleNavigation);
+  }, [isOpen, results, activeItemIndex, searchTerm, saveToHistory, onClose]);
 
   // Scroll active item into view
   useEffect(() => {
@@ -191,12 +184,8 @@ const NavbarSearch = ({ isOpen, onClose }) => {
     }
   }, [activeItemIndex]);
 
-  // Reset active index when results change
-  useEffect(() => {
-    setActiveItemIndex(-1);
-  }, [results]);
+  useEffect(() => setActiveItemIndex(-1), [results]);
 
-  // Clear search when closed
   useEffect(() => {
     if (!isOpen) {
       setSearchTerm('');
@@ -209,10 +198,10 @@ const NavbarSearch = ({ isOpen, onClose }) => {
     if (filteredItems.length === 0) return null;
 
     return (
-      <section className="mb-6 last:mb-0">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="flex items-center gap-2 text-xs font-bold tracking-widest text-gray-400 uppercase">
-            <Icon size={14} />
+      <section className="mb-8 last:mb-0">
+        <div className="mb-4 flex items-center justify-between px-1">
+          <h3 className="flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase">
+            <Icon size={14} className="text-primary" />
             {title}
           </h3>
           {viewAllLink && (
@@ -222,14 +211,13 @@ const NavbarSearch = ({ isOpen, onClose }) => {
                 saveToHistory(searchTerm);
                 onClose();
               }}
-              className="text-primary hover:text-primary-dark flex items-center gap-1 text-xs font-medium hover:underline"
+              className="text-primary flex items-center gap-1 text-xs font-semibold hover:underline"
             >
-              View all
-              <FiArrowRight size={12} />
+              View all <FiArrowRight size={12} />
             </Link>
           )}
         </div>
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-1">
+        <div className="flex flex-col gap-1">
           {filteredItems.map((item) => {
             const globalIndex = results.indexOf(item);
             const isActive = activeItemIndex === globalIndex;
@@ -242,44 +230,47 @@ const NavbarSearch = ({ isOpen, onClose }) => {
                   saveToHistory(searchTerm);
                   onClose();
                 }}
-                className={`group flex items-center justify-between rounded-xl border p-3 transition-all hover:shadow-sm ${
+                className={`group flex items-center justify-between rounded-xl p-3 transition-all ${
                   isActive
-                    ? 'border-primary ring-primary/20 bg-white shadow-sm ring-1'
-                    : 'hover:border-primary/10 border-transparent bg-gray-50/50 hover:bg-white'
+                    ? 'bg-primary ring-primary text-white shadow-md ring-1'
+                    : 'bg-white hover:bg-gray-50'
                 }`}
                 role="option"
                 aria-selected={isActive}
               >
                 <div className="flex items-center gap-3">
-                  {item.image ? (
-                    <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                  <div
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gray-100 ${isActive ? 'bg-white/20' : ''}`}
+                  >
+                    {item.image ? (
                       <img src={item.image} alt="" className="h-full w-full object-cover" />
-                    </div>
-                  ) : (
-                    <div className="bg-primary/10 text-primary flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg">
-                      <Icon size={20} />
-                    </div>
-                  )}
+                    ) : (
+                      <Icon size={18} className={isActive ? 'text-white' : 'text-primary'} />
+                    )}
+                  </div>
                   <div>
                     <p
-                      className={`text-sm font-medium transition-colors ${isActive ? 'text-primary' : 'group-hover:text-primary text-gray-900'}`}
+                      className={`text-sm font-semibold ${isActive ? 'text-white' : 'text-gray-900'}`}
                     >
                       {item.name || item.title}
                     </p>
                     <div className="flex items-center gap-2">
-                      {item.category && <p className="text-xs text-gray-500">{item.category}</p>}
+                      <p className={`text-xs ${isActive ? 'text-white/80' : 'text-gray-500'}`}>
+                        {item.category || item.type}
+                      </p>
                       {item.type === 'Product' && item.price && (
-                        <>
-                          <span className="h-1 w-1 rounded-full bg-gray-300" />
-                          <p className="text-primary text-xs font-bold">${item.price}</p>
-                        </>
+                        <p
+                          className={`text-xs font-bold ${isActive ? 'text-white' : 'text-primary'}`}
+                        >
+                          • ${item.price}
+                        </p>
                       )}
                     </div>
                   </div>
                 </div>
                 <FiArrowRight
                   size={16}
-                  className={`transition-all ${isActive ? 'text-primary translate-x-1' : 'group-hover:text-primary text-gray-300 group-hover:translate-x-1'}`}
+                  className={`transition-transform ${isActive ? 'translate-x-1 opacity-100' : 'opacity-0 group-hover:translate-x-1 group-hover:opacity-100'}`}
                 />
               </Link>
             );
@@ -292,59 +283,52 @@ const NavbarSearch = ({ isOpen, onClose }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center px-4 py-8 sm:px-6 sm:py-20">
-          {/* Overlay */}
+        <div className="fixed inset-0 z-100 flex items-start justify-center px-4 py-6 sm:py-10">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="absolute inset-0 bg-black/40 backdrop-blur-md"
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           />
 
-          {/* Search Container */}
           <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            initial={{ opacity: 0, y: -20, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="relative flex max-h-[85vh] w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Global search"
+            exit={{ opacity: 0, y: -20, scale: 0.98 }}
+            className="relative flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
           >
-            {/* Search Header */}
-            <div className="flex items-center gap-4 border-b border-gray-100 p-6">
-              <div className="relative flex-1">
+            {/* Improved Header Alignment */}
+            <div className="flex items-center gap-4 border-b border-gray-100 px-6 py-5">
+              <div className="relative flex flex-1 items-center">
                 <FiSearch
-                  className={`absolute top-1/2 left-0 -translate-y-1/2 text-gray-400 transition-colors ${isLoading ? 'text-primary animate-pulse' : ''}`}
-                  size={24}
+                  className={`absolute left-0 text-gray-400 transition-colors ${isLoading ? 'text-primary animate-pulse' : ''}`}
+                  size={22}
                 />
                 <input
+                  ref={inputRef}
                   type="text"
-                  placeholder="Search products, blogs, brands..."
-                  className="w-full bg-transparent pl-10 text-xl font-light text-gray-900 placeholder-gray-400 outline-none"
+                  placeholder="Search products, brands, or help..."
+                  className="w-full bg-transparent pl-9 text-lg font-medium text-gray-900 placeholder-gray-400 outline-none"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  autoFocus
-                  aria-label="Search site content"
                 />
               </div>
               <button
                 onClick={onClose}
-                className="rounded-full p-2 text-gray-400 transition-colors hover:bg-gray-50 hover:text-red-500"
-                aria-label="Close search overlay"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-gray-400 transition-colors hover:bg-gray-100 hover:text-red-500"
+                aria-label="Close"
               >
                 <FiX size={24} />
               </button>
             </div>
 
-            {/* Search Results Area */}
+            {/* Results Area */}
             <div className="scrollbar-hide flex-1 overflow-y-auto p-6" ref={resultsContainerRef}>
               {searchTerm.length >= 2 ? (
-                <>
+                <div role="listbox">
                   {results.length > 0 ? (
-                    <div className="space-y-8" role="listbox">
+                    <>
                       <ResultSection
                         title="Products"
                         items={results}
@@ -373,34 +357,34 @@ const NavbarSearch = ({ isOpen, onClose }) => {
                         icon={FiHelpCircle}
                       />
 
-                      <div className="border-t border-gray-50 pt-4 text-center">
-                        <p className="text-sm text-gray-500">
-                          Found {results.length} results for "{searchTerm}"
+                      <div className="mt-6 border-t border-gray-50 pt-6 text-center">
+                        <p className="text-xs font-medium text-gray-400">
+                          {results.length} results for "{searchTerm}"
                         </p>
                       </div>
-                    </div>
+                    </>
                   ) : !isLoading ? (
                     <div className="py-20 text-center">
-                      <div className="mb-4 flex justify-center text-gray-200">
-                        <FiSearch size={48} />
+                      <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-300">
+                        <FiSearch size={32} />
                       </div>
-                      <h3 className="mb-1 text-lg font-medium text-gray-900">No results found</h3>
-                      <p className="text-gray-500">
-                        We couldn't find anything matching "{searchTerm}".
+                      <h3 className="text-lg font-semibold text-gray-900">No results found</h3>
+                      <p className="text-sm text-gray-500">
+                        Try checking your spelling or use more general terms.
                       </p>
                     </div>
                   ) : (
-                    <div className="flex h-40 items-center justify-center">
-                      <div className="border-primary h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"></div>
+                    <div className="flex items-center justify-center py-20">
+                      <div className="border-primary h-10 w-10 animate-spin rounded-full border-2 border-t-transparent" />
                     </div>
                   )}
-                </>
+                </div>
               ) : (
-                <div className="py-8">
+                <div className="py-4">
                   {recentSearches.length > 0 && (
                     <div className="mb-10">
                       <div className="mb-4 flex items-center justify-between">
-                        <h3 className="text-xs font-bold tracking-widest text-gray-400 uppercase">
+                        <h3 className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase">
                           Recent Searches
                         </h3>
                         <button
@@ -408,9 +392,9 @@ const NavbarSearch = ({ isOpen, onClose }) => {
                             setRecentSearches([]);
                             localStorage.removeItem('recentSearches');
                           }}
-                          className="text-xs text-gray-400 hover:text-red-500"
+                          className="text-xs font-semibold text-gray-400 hover:text-red-500"
                         >
-                          Clear All
+                          Clear
                         </button>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -418,43 +402,39 @@ const NavbarSearch = ({ isOpen, onClose }) => {
                           <button
                             key={term}
                             onClick={() => setSearchTerm(term)}
-                            className="hover:border-primary hover:text-primary flex items-center gap-2 rounded-lg border border-gray-100 bg-gray-50/50 px-4 py-2 text-sm transition-all hover:bg-white"
+                            className="hover:border-primary hover:text-primary flex items-center gap-2 rounded-full border border-gray-100 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-600 transition-all hover:bg-white"
                           >
-                            <FiSearch size={14} className="text-gray-400" />
-                            {term}
+                            <FiSearch size={14} /> {term}
                           </button>
                         ))}
                       </div>
                     </div>
                   )}
 
-                  <div className="py-12 text-center">
-                    <div className="text-primary/10 mb-6 flex justify-center">
-                      <FiSearch size={64} />
+                  <div className="py-4 text-center">
+                    <div className="bg-primary/5 text-primary mx-auto mb-3 flex h-20 w-20 items-center justify-center rounded-full">
+                      <FiSearch size={40} />
                     </div>
-                    <h3 className="mb-2 text-xl font-medium text-gray-900">
-                      What are you looking for?
-                    </h3>
-                    <p className="mx-auto max-w-xs text-gray-500">
-                      Search for products, collections, news, or help articles from our products.
+                    <h3 className="text-xl font-bold text-gray-900">Looking for something?</h3>
+                    <p className="mx-auto mt-2 max-w-[280px] text-sm text-gray-500">
+                      Search our entire catalog of products, collections, and articles.
                     </p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Footer/Quick Links */}
-            <div className="border-t border-gray-100 bg-gray-50/80 p-6">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="mr-2 text-xs font-bold tracking-widest text-gray-400 uppercase">
+            {/* Trending Tags Footer */}
+            <div className="border-t border-gray-100 bg-gray-50/50 p-6">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-[10px] font-bold tracking-[0.2em] text-gray-400 uppercase">
                   Trending:
                 </span>
-                {['Summer', 'Jeans', 'Dresses', 'Shoes'].map((tag) => (
+                {['summer', 'tops', 'dress', 'new arrival'].map((tag) => (
                   <button
                     key={tag}
                     onClick={() => setSearchTerm(tag)}
-                    className="hover:border-primary hover:text-primary rounded-full border border-gray-200 bg-white px-4 py-1.5 text-sm font-medium text-gray-600 transition-all hover:shadow-sm"
-                    aria-label={`Search for ${tag}`}
+                    className="hover:ring-primary hover:text-primary rounded-full bg-white px-4 py-1.5 text-xs font-bold text-gray-700 shadow-sm ring-1 ring-gray-200 transition-all"
                   >
                     {tag}
                   </button>

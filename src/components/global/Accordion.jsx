@@ -1,36 +1,59 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useState } from 'react';
-import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { FiChevronDown } from 'react-icons/fi';
 
-const Accordion = ({ title, children, defaultOpen = false }) => {
+const Accordion = ({
+  title,
+  children,
+  defaultOpen = false,
+  className = '',
+  headerClassName = '',
+  contentClassName = '',
+}) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
+  const toggleAccordion = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
-    <div className="border-b border-gray-200">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex w-full items-center justify-between px-2 py-4 text-left transition-colors duration-200 hover:bg-gray-50"
+    <div className={`border-b border-gray-100 last:border-b-0 ${className}`}>
+      <motion.button
+        onClick={toggleAccordion}
+        type="button"
+        className={`flex w-full items-center justify-between px-6 py-4 text-left transition-colors hover:bg-gray-50 ${headerClassName}`}
+        aria-expanded={isOpen}
       >
-        <span className="font-medium text-gray-800">{title}</span>
-        {isOpen ? (
-          <FiChevronUp className="text-gray-500" />
-        ) : (
-          <FiChevronDown className="text-gray-500" />
-        )}
-      </button>
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-            className="overflow-hidden"
-          >
-            <div className="px-2 pb-4 text-gray-600">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        <div className="flex flex-1 items-center gap-3">
+          {typeof title === 'string' ? (
+            <span className="font-semibold text-gray-900">{title}</span>
+          ) : (
+            title
+          )}
+        </div>
+        <motion.div
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+          className="shrink-0 text-gray-500"
+        >
+          <FiChevronDown size={20} />
+        </motion.div>
+      </motion.button>
+
+      <motion.div
+        initial={false}
+        animate={{
+          height: isOpen ? 'auto' : 0,
+          opacity: isOpen ? 1 : 0,
+        }}
+        transition={{
+          duration: 0.3,
+          ease: 'easeInOut',
+        }}
+        className="overflow-hidden"
+      >
+        <div className={`bg-gray-50 px-6 py-4 ${contentClassName}`}>{children}</div>
+      </motion.div>
     </div>
   );
 };

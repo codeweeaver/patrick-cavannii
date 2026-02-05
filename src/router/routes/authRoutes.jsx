@@ -8,9 +8,6 @@ import GuestGuard from '../guards/GuestGuard';
 const Register = lazy(() => import('../../pages/Register'));
 const Login = lazy(() => import('../../pages/Login'));
 const ForgotPassword = lazy(() => import('../../pages/ForgotPassword'));
-const Personal = lazy(() => import('../../pages/register/Personal'));
-const Security = lazy(() => import('../../pages/register/Security'));
-const Address = lazy(() => import('../../pages/register/Address'));
 
 const Suspended = ({ children }) => <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>;
 
@@ -28,32 +25,6 @@ export const authRoutes = [
                 <Register />
               </Suspended>
             ),
-            children: [
-              {
-                index: true,
-                element: (
-                  <Suspended>
-                    <Personal />
-                  </Suspended>
-                ),
-              },
-              {
-                path: 'security',
-                element: (
-                  <Suspended>
-                    <Security />
-                  </Suspended>
-                ),
-              },
-              {
-                path: 'address',
-                element: (
-                  <Suspended>
-                    <Address />
-                  </Suspended>
-                ),
-              },
-            ],
           },
           {
             path: 'login',

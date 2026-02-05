@@ -1,7 +1,7 @@
 import * as Yup from 'yup';
 
 export const registerSchema = Yup.object().shape({
-  name: Yup.string()
+  fullName: Yup.string()
     .required('Full name is required')
     .min(3, 'Name must be at least 3 characters')
     .matches(/^[a-zA-Z\s]*$/, 'Name can only contain letters and spaces')

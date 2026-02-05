@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { apiClient } from '../../utils/apiClient.js';
+import api from '../../utils/api.js';
 import LoadingSpinner from '../global/LoadingSpinner.jsx';
 import ProductCard from '../products/ProductCard.jsx';
 
@@ -11,7 +11,7 @@ const NewArrival = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const data = await apiClient.get('/products?_sort=id&_order=desc&_limit=4');
+        const data = await api.get('/products?_sort=id&_order=desc&_limit=4');
         setProducts(data);
       } catch (error) {
         console.error('Failed to fetch new arrivals:', error);
